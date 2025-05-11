@@ -1,12 +1,11 @@
 #include "tree.h"
 
 // Constants for tree printing
-const char *NEW_LINE       = "\n";
-const char *EMPTY_SPACE    = "    ";
-const char *MIDDLE_ITEM    = "├── ";
-const char *CONTINUE_ITEM  = "│   ";
-const char *LAST_ITEM      = "└── ";
-const int   ITERM_RUNE_LEN = 4;
+const char *NEW_LINE      = "\n";
+const char *EMPTY_SPACE   = "    ";
+const char *MIDDLE_ITEM   = "├── ";
+const char *CONTINUE_ITEM = "│   ";
+const char *LAST_ITEM     = "└── ";
 
 // Internal function prototypes
 static char *print_items(Tree *items[], int count, int spaces[], int space_count);

@@ -5,8 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_CHILDREN    100
-#define MAX_TEXT_LENGTH 1024
+#define MAX_CHILDREN          100
+#define MAX_TEXT_LENGTH       1024
+#define TREE_ITEM_RUNE_LENGTH 4
 
 // Tree structure
 typedef struct Tree {

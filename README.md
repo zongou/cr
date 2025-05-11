@@ -47,14 +47,18 @@ To Handle unsupported languages, see [c_hello](#c_hello)
 
 Build this program
 
+- [ ] CGO_ENABLED
+
 ```sh
 program=$(basename "${PWD}")
 
-if ! test "${CC+1}" && command -v zig >/dev/null; then
-    CC="zig cc --target=$(uname -m)-linux-musl"
-fi
+# if ! test "${CC+1}" && command -v zig >/dev/null; then
+#     CC="zig cc --target=$(uname -m)-linux-musl"
+# fi
 
-${CC-cc} -o ${program} main.c "$@" ${LDFLAGS-}
+# ${CC-cc} -o ${program} main.c "$@" ${LDFLAGS-}
+# go build -o ${program} main.go -trimpath -ldflags="-s -w"
+go build -o ${program} -ldflags "-s -w" .
 du -ahd0 ${program}
 file ${program}
 ```
@@ -219,7 +223,7 @@ Test C Hello World program
 
 ```sh
 TMPDIR=${TMPDIR:-/tmp}
-$MD_EXE -ac c_hello_source >"${TMPDIR}/hello.c"
+$MD_EXE -a -c c_hello_source >"${TMPDIR}/hello.c"
 cc -o "${TMPDIR}/a" "${TMPDIR}/hello.c"
 "${TMPDIR}/a"
 ```
