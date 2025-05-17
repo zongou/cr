@@ -512,9 +512,11 @@ Tree *md_to_command_tree2(MD_NODE *head, Tree *parent, int max_len) {
             memset(space, ' ', space_count);
             space[space_count] = '\0';
 
-            int   buf_size = snprintf(NULL, 0, "%s%s  %s", current->text, space, description) + 1;
+            char *short_desc = strtok(description, "\n"); // Only print the first line of the description
+
+            int   buf_size = snprintf(NULL, 0, "%s%s  %s", current->text, space, short_desc) + 1;
             char *buf      = safe_malloc(buf_size);
-            snprintf(buf, buf_size, "%s%s  %s", current->text, space, description);
+            snprintf(buf, buf_size, "%s%s  %s", current->text, space, short_desc);
 
             Tree *current_tree = new_tree(buf);
             add_subtree(parent, current_tree);
