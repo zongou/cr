@@ -236,17 +236,6 @@ int main() {
 }
 ```
 
-# Others
-
-## Reset
-
-Reset to the initial commit
-
-```sh
-git reset --hard $(git rev-list --max-parents=0 HEAD)
-git pull
-```
-
 ---
 
 Inspired by [mask](https://github.com/jacobdeichert/mask) and [xc](https://github.com/joerdav/xc).
