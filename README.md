@@ -47,7 +47,7 @@ To Handle unsupported languages, see [c_hello](#c_hello)
 
 | key     | value |
 | ------- | ----- |
-| program | cr    |
+| program | ./cr  |
 
 Build this program
 
