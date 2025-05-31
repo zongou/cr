@@ -66,6 +66,8 @@ if [ ${sanitize} -eq 1 ]; then
     CFLAGS="${CFLAGS-} -fsanitize=address"
 fi
 
+export LDFLAGS="-g"
+
 export CFLAGS
 ${MD_EXE} --file=${MD_FILE} build
 ${program} "$@"

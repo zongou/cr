@@ -53,13 +53,17 @@ void show_hint(MD_NODE *root) {
         }
 
         current = current->next;
+        free_tree(tree);
+        free(tree_string);
     }
 
     current = root;
     while (current != NULL) {
         Tree *tree        = md_to_command_tree2(current->child, new_tree(current->text), max_line_len);
         char *tree_string = print_tree(tree);
-        printf("%s\n", print_tree(tree));
+        printf("%s\n", tree_string);
+        free_tree(tree);
+        free(tree_string);
         current = current->next;
     }
 }
