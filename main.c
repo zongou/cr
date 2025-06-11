@@ -1,5 +1,6 @@
 #include "config.h"
 #include "executor.c"
+#include "executor.h"
 #include "find_doc.c"
 #include "logger.c"
 #include "markdown.c"
@@ -24,7 +25,8 @@ void show_help() {
         "  -a, --all            Enable all code blocks\n"
         "  -m, --markdown       Print node markdown\n"
         "  -c, --code           Print node code block\n"
-        "  -f, --file [FILE]    Specify the file to parse\n",
+        "  -f, --file [FILE]    Specify the file to parse\n"
+        "  -k, --key  [KEY]     Print environment variable value for KEY\n",
         config.program);
 }
 
@@ -70,6 +72,7 @@ void show_hint(MD_NODE *root) {
 
 int main(int argc, char **argv) {
     config.program = basename(argv[0]);
+    config.key     = NULL; // Initialize key to NULL
 
     // Parse options
     int arg_index = 1;
@@ -114,6 +117,22 @@ int main(int argc, char **argv) {
                             }
                             short_opt_index = current_arg_len; // Go to parse next argument
                             break;
+                        case 'k':                                        // Pattern: -k**, -k **
+                            if (short_opt_index < current_arg_len - 1) { // Not the last char
+                                config.key = current_arg + short_opt_index + 1;
+                            } else {
+                                // Current argument is not the last argument,
+                                // and next argument is not an option.
+                                if (arg_index < argc - 1 && argv[arg_index + 1][0] != '-') {
+                                    config.key = argv[arg_index + 1];
+                                    arg_index++;
+                                } else {
+                                    error_msg("No key specified after -k\n");
+                                    return 1;
+                                }
+                            }
+                            short_opt_index = current_arg_len; // Go to parse next argument
+                            break;
                         default:
                             error_msg("Unknown option: %c\n", short_opt);
                             return 1;
@@ -132,6 +151,11 @@ int main(int argc, char **argv) {
                     config.code = 1;
                 } else if (strncmp(current_arg, "--file=", 7) == 0 && current_arg_len > 7) { // Pattern: --file=**
                     config.file_path = current_arg + 7;
+                } else if (strncmp(current_arg, "--key=", 6) == 0 && current_arg_len > 6) { // Pattern: --key=**
+                    config.key = current_arg + 6;
+                } else if (strcmp(current_arg, "--key") == 0 && arg_index < argc - 1) { // Pattern: --key **
+                    config.key = argv[arg_index + 1];
+                    arg_index++;
                 } else if (strcmp(current_arg, "--file") == 0 && arg_index < argc - 1) { // Pattern: --file **
                     config.file_path = argv[arg_index + 1];
                     arg_index++;
@@ -196,6 +220,11 @@ int main(int argc, char **argv) {
             info_msg("Found node: %s\n", node_found->text);
             node_found->next  = NULL; // Do not print next node
             node_found->child = NULL; // Do not print child node
+
+            if (config.key) {
+                return print_node_env(node_found, config.key);
+            }
+
             if (config.markdown || config.code) {
                 if (config.markdown) {
                     printf("%s", md_node_to_markdown(node_found));
@@ -216,6 +245,10 @@ int main(int argc, char **argv) {
             return 1;
         }
     } else {
+        if (config.key) {
+            return print_node_env(root, config.key);
+        }
+        
         info_msg("No command specified, printing hints.\n");
         if (config.markdown) {
             printf("%s", md_node_to_markdown(root));

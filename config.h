@@ -15,6 +15,7 @@ struct config {
 
     // Options
     char *file_path;
+    char *key;  // New field for --key option
 };
 
 #endif

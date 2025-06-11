@@ -11,5 +11,6 @@ struct language_config {
 
 const struct language_config *get_language_config(const char *lang);
 int                           execute_node(MD_NODE *node, char **args, int num_args);
+int                           print_node_env(MD_NODE *root, const char *key);
 
 #endif

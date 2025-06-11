@@ -1,5 +1,6 @@
 #include "executor.h"
 #include "logger.h"
+#include "markdown.h"
 #include "utils.h"
 #include <stdio.h>
 #include <sys/wait.h>
@@ -156,4 +157,26 @@ int execute_node(MD_NODE *node, char **args, int num_args) {
         block = block->next;
     }
     return exit_code;
+}
+
+int print_node_env(MD_NODE *root, const char *key) {
+    MD_NODE *current = root;
+    while (current != NULL) {
+        if (current->env_entry) {
+            ENV_ENTRY *env = current->env_entry;
+            while (env) {
+                if (strcmp(env->key, key) == 0) {
+                    if (env->value) {
+                        printf("%s\n", env->value);
+                    }
+                    return 0;
+                }
+                env = env->next;
+            }
+        }
+        current = current->parent;
+    }
+
+    error_msg("Environment variable not found: %s\n", key);
+    return 1;
 }
