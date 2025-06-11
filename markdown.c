@@ -276,7 +276,10 @@ static int leave_block_callback(MD_BLOCKTYPE type, void *detail, void *userdata)
             MD_BLOCK_H_DETAIL *d        = (MD_BLOCK_H_DETAIL *)detail;
             MD_NODE           *new_node = new_md_node();
             new_node->level             = d->level;
-            new_node->text              = strdup(data->content);
+
+            if (data->content) {
+                new_node->text = strdup(data->content);
+            }
 
             if (data->root == NULL) {
                 data->root = new_node;
