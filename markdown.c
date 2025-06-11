@@ -476,7 +476,11 @@ Tree *md_to_command_tree(MD_NODE *head, Tree *parent) {
     while (current != NULL) {
         if (current->code_block || current->child) {
             if (current->level > 1) {
-                current->text = strlower(current->text);
+                if (current->text != NULL) {
+                    current->text = strlower(current->text);
+                } else {
+                    current->text = strdup("");
+                }
             }
             Tree *current_tree = new_tree(current->text);
             add_subtree(parent, current_tree);
