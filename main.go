@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 
@@ -148,7 +149,7 @@ ParseArg:
 	}
 
 	os.Setenv("MD_FILE", config.filePath)
-	os.Setenv("MD_EXE", config.program)
+	os.Setenv("MD_EXE", os.Args[0])
 
 	content, err := os.ReadFile(config.filePath)
 	if err != nil {
@@ -161,4 +162,17 @@ ParseArg:
 	doc := p.Parse(content)
 
 	ast.Print(os.Stdout, doc)
+
+	// Create the command `echo hello`
+	cmd := exec.Command("sh", "-c", "echo MD_FILE=${MD_FILE} MD_EXE=${MD_EXE}")
+
+	// Run the command and capture its output
+	output, err := cmd.Output()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	// Print the output (it includes a newline at the end)
+	fmt.Printf("Output: %s", output)
 }
