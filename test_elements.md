@@ -14,11 +14,13 @@ Here's a table:
 ## Section with Lists
 
 An ordered list:
+
 1. First item
 2. Second item
 3. Third item
 
 An unordered list:
+
 - Item A
 - Item B
 - Item C

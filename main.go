@@ -6,12 +6,10 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"strings"
 
-	"github.com/yuin/goldmark"
-	"github.com/yuin/goldmark/ast"
-	ext_ast "github.com/yuin/goldmark/extension/ast"
-	"github.com/yuin/goldmark/extension"
-	"github.com/yuin/goldmark/text"
+	"github.com/gomarkdown/markdown/ast"
+	"github.com/gomarkdown/markdown/parser"
 )
 
 // Node represents a parsed markdown node containing various elements
@@ -21,7 +19,8 @@ type Node struct {
 	Tables     []Table
 	Lists      []List
 	CodeBlocks []CodeBlock
-	Graphs     []Graph
+	Paragraphs []string
+	KeyValueMaps []map[string]string
 	Children   []*Node
 	Parent     *Node
 }
@@ -34,8 +33,14 @@ type Table struct {
 
 // List represents a markdown list
 type List struct {
-	Items []string
+	Items    []ListItem
 	IsOrdered bool
+}
+
+// ListItem represents a list item that can be a regular item or a task list item
+type ListItem struct {
+	Text    string
+	Checked *bool // nil for regular items, true/false for task list items
 }
 
 // CodeBlock represents a markdown code block
@@ -44,11 +49,6 @@ type CodeBlock struct {
 	Content  string
 }
 
-// Graph represents a markdown graph (mermaid, plantuml, etc.)
-type Graph struct {
-	Type    string
-	Content string
-}
 
 var config = struct {
 	program  string
@@ -60,6 +60,7 @@ var config = struct {
 	code     bool
 	help     bool
 	filePath string
+	debugAST bool
 }{}
 
 func findDoc() (string, bool) {
@@ -101,18 +102,22 @@ Options
   -c, --code              Print node code block
   -a, --all               Parse code blocks in all languages
   -f, --file [FILE]       Specify the file to parse
+  --debug-ast             Print AST structure for debugging
 `, config.program)
 }
 
 // parseMarkdown parses markdown content into a tree of nodes
 func parseMarkdown(source []byte) *Node {
 	// Create markdown parser with extensions
-	md := goldmark.New(
-		goldmark.WithExtensions(extension.Table),
-	)
+	extensions := parser.CommonExtensions | parser.Tables
+	p := parser.NewWithExtensions(extensions)
+	doc := p.Parse(source)
 	
-	// Parse the document
-	doc := md.Parser().Parse(text.NewReader(source))
+	if config.debugAST {
+		fmt.Println("=== AST Structure ===")
+		printAST(doc, source, 0)
+		fmt.Println("====================")
+	}
 	
 	root := &Node{
 		Heading: "root",
@@ -123,10 +128,73 @@ func parseMarkdown(source []byte) *Node {
 	return root
 }
 
+// printAST prints the AST structure for debugging
+func printAST(node ast.Node, source []byte, depth int) {
+	indent := ""
+	for i := 0; i < depth; i++ {
+		indent += "  "
+	}
+	
+	fmt.Printf("%s%s\n", indent, getNodeTypeName(node))
+	
+	// Print literal content if available
+	if textNode, ok := node.(*ast.Text); ok && len(textNode.Literal) > 0 {
+		fmt.Printf("%s  Literal: %q\n", indent, string(textNode.Literal))
+	}
+	
+	// Print children
+	for _, child := range node.GetChildren() {
+		printAST(child, source, depth+1)
+	}
+}
+
+// getNodeTypeName returns a string representation of the node type
+func getNodeTypeName(node ast.Node) string {
+	switch node.(type) {
+	case *ast.Document:
+		return "Document"
+	case *ast.Heading:
+		return "Heading"
+	case *ast.Text:
+		return "Text"
+	case *ast.List:
+		return "List"
+	case *ast.ListItem:
+		return "ListItem"
+	case *ast.Paragraph:
+		return "Paragraph"
+	case *ast.CodeBlock:
+		return "CodeBlock"
+	case *ast.Table:
+		return "Table"
+	case *ast.TableHeader:
+		return "TableHeader"
+	case *ast.TableBody:
+		return "TableBody"
+	case *ast.TableRow:
+		return "TableRow"
+	case *ast.TableCell:
+		return "TableCell"
+	case *ast.Emph:
+		return "Emph"
+	case *ast.Strong:
+		return "Strong"
+	case *ast.Link:
+		return "Link"
+	case *ast.Image:
+		return "Image"
+	default:
+		return fmt.Sprintf("Unknown(%T)", node)
+	}
+}
+
 // parseNode recursively parses AST nodes into our Node structure
 func parseNode(astNode ast.Node, parentNode *Node, source []byte) {
+	// Keep track of the current node where content should be added
+	currentNode := parentNode
+	
 	// Walk through children
-	for child := astNode.FirstChild(); child != nil; child = child.NextSibling() {
+	for _, child := range astNode.GetChildren() {
 		switch n := child.(type) {
 		case *ast.Heading:
 			// Create a new node for this heading
@@ -140,62 +208,66 @@ func parseNode(astNode ast.Node, parentNode *Node, source []byte) {
 			// Add to parent's children
 			parentNode.Children = append(parentNode.Children, headingNode)
 			
+			// Update current node to this heading
+			currentNode = headingNode
+			
 			// Continue parsing within this heading node
 			parseNode(child, headingNode, source)
 			
-		case *ext_ast.Table:
+		case *ast.Table:
 			// Parse table
 			table := parseTable(n, source)
-			if len(parentNode.Children) > 0 {
-				// Add to the last heading node
-				lastNode := parentNode.Children[len(parentNode.Children)-1]
-				lastNode.Tables = append(lastNode.Tables, table)
+			
+			// Check if this is a key-value table
+			kvMap := tryCreateKeyValueMap(table)
+			
+			if kvMap != nil {
+				currentNode.KeyValueMaps = append(currentNode.KeyValueMaps, kvMap)
 			} else {
-				// Add to current node
-				parentNode.Tables = append(parentNode.Tables, table)
+				currentNode.Tables = append(currentNode.Tables, table)
 			}
 			
 		case *ast.List:
 			// Parse list
 			list := parseList(n, source)
-			if len(parentNode.Children) > 0 {
-				// Add to the last heading node
-				lastNode := parentNode.Children[len(parentNode.Children)-1]
-				lastNode.Lists = append(lastNode.Lists, list)
-			} else {
-				// Add to current node
-				parentNode.Lists = append(parentNode.Lists, list)
-			}
+			currentNode.Lists = append(currentNode.Lists, list)
 			
-		case *ast.FencedCodeBlock:
-			// Parse fenced code block
-			codeBlock := CodeBlock{
-				Language: string(n.Language(source)),
-				Content:  string(n.Lines().Value(source)),
-			}
+			// If this is a task list, also add entries to the key-value map
+			kvMap := make(map[string]string)
+			hasTaskItems := false
 			
-			if len(parentNode.Children) > 0 {
-				// Add to the last heading node
-				lastNode := parentNode.Children[len(parentNode.Children)-1]
-				lastNode.CodeBlocks = append(lastNode.CodeBlocks, codeBlock)
-			} else {
-				// Add to current node
-				parentNode.CodeBlocks = append(parentNode.CodeBlocks, codeBlock)
-			}
-			
-		case *ast.HTMLBlock:
-			// Check if this HTML block contains a graph
-			graph := parseGraph(n, source)
-			if graph.Type != "" {
-				if len(parentNode.Children) > 0 {
-					// Add to the last heading node
-					lastNode := parentNode.Children[len(parentNode.Children)-1]
-					lastNode.Graphs = append(lastNode.Graphs, graph)
-				} else {
-					// Add to current node
-					parentNode.Graphs = append(parentNode.Graphs, graph)
+			for _, item := range list.Items {
+				if item.Checked != nil {
+					// This is a task list item
+					hasTaskItems = true
+					if *item.Checked {
+						kvMap[item.Text] = "1" // Checked task
+					} else {
+						kvMap[item.Text] = "0" // Unchecked task
+					}
 				}
 			}
+			
+			// If we found task items, add the map to keyValueMaps
+			if hasTaskItems {
+				currentNode.KeyValueMaps = append(currentNode.KeyValueMaps, kvMap)
+			}
+			
+		case *ast.Paragraph:
+			// Parse paragraph
+			paragraphText := string(extractText(n, source))
+			if strings.TrimSpace(paragraphText) != "" {
+				currentNode.Paragraphs = append(currentNode.Paragraphs, paragraphText)
+			}
+			
+		case *ast.CodeBlock:
+			// Parse code block
+			codeBlock := CodeBlock{
+				Language: string(n.Info),
+				Content:  string(n.Literal),
+			}
+			
+			currentNode.CodeBlocks = append(currentNode.CodeBlocks, codeBlock)
 			
 		default:
 			// Continue parsing other node types
@@ -204,35 +276,83 @@ func parseNode(astNode ast.Node, parentNode *Node, source []byte) {
 	}
 }
 
+// tryCreateKeyValueMap checks if a table is a key-value table and creates a map if so
+func tryCreateKeyValueMap(table Table) map[string]string {
+	// Check if table has exactly two columns
+	if len(table.Header) != 2 {
+		return nil
+	}
+	
+	// Check if headers are "key" and "value" (case insensitive)
+	header1 := strings.ToLower(strings.TrimSpace(table.Header[0]))
+	header2 := strings.ToLower(strings.TrimSpace(table.Header[1]))
+	
+	if !(header1 == "key" && header2 == "value") && 
+	   !(header1 == "value" && header2 == "key") {
+		return nil
+	}
+	
+	// Create the key-value map
+	kvMap := make(map[string]string)
+	
+	// Populate the map with rows
+	for _, row := range table.Rows {
+		if len(row) >= 2 {
+			var key, value string
+			
+			// Handle column order (key could be in either column)
+			if header1 == "key" {
+				key = strings.TrimSpace(row[0])
+				value = strings.TrimSpace(row[1])
+			} else {
+				key = strings.TrimSpace(row[1])
+				value = strings.TrimSpace(row[0])
+			}
+			
+			// Only add non-empty keys
+			if key != "" {
+				kvMap[key] = value
+			}
+		}
+	}
+	
+	return kvMap
+}
+
 // extractText extracts plain text from an AST node
 func extractText(node ast.Node, source []byte) []byte {
 	var result []byte
-	for child := node.FirstChild(); child != nil; child = child.NextSibling() {
+	
+	// Handle literal text directly
+	if textNode, ok := node.(*ast.Text); ok {
+		return textNode.Literal
+	}
+	
+	// Handle other nodes recursively
+	for _, child := range node.GetChildren() {
 		switch n := child.(type) {
 		case *ast.Text:
-			result = append(result, n.Segment.Value(source)...)
-		case *ast.String:
-			result = append(result, n.Value...)
+			result = append(result, n.Literal...)
 		default:
 			result = append(result, extractText(child, source)...)
 		}
 	}
+	
 	return result
 }
 
 // parseTable parses a markdown table into our Table struct
-func parseTable(tableNode *ext_ast.Table, source []byte) Table {
+func parseTable(tableNode *ast.Table, source []byte) Table {
 	table := Table{}
 	
-	// Parse header - first child should be the header row
-	if header := tableNode.FirstChild(); header != nil {
-		if tableHeader, ok := header.(*ext_ast.TableHeader); ok {
-			// Header row is the first child of TableHeader
-			if headerRow := tableHeader.FirstChild(); headerRow != nil {
-				if headerRowNode, ok := headerRow.(*ext_ast.TableRow); ok {
+	// Parse header
+	if len(tableNode.Children) > 0 {
+		if header, ok := tableNode.Children[0].(*ast.TableHeader); ok {
+			if len(header.Children) > 0 {
+				if headerRow, ok := header.Children[0].(*ast.TableRow); ok {
 					var headerCells []string
-					for cell := headerRowNode.FirstChild(); cell != nil; cell = cell.NextSibling() {
-						if tableCell, ok := cell.(*ext_ast.TableCell); ok {
+					for _, cell := range headerRow.Children {
+						if tableCell, ok := cell.(*ast.TableCell); ok {
 							cellText := string(extractText(tableCell, source))
 							headerCells = append(headerCells, cellText)
 						}
@@ -243,30 +363,26 @@ func parseTable(tableNode *ext_ast.Table, source []byte) Table {
 		}
 	}
 	
-	// Parse rows - skip the header row and delimiter row
-	bodyStarted := false
-	for row := tableNode.FirstChild(); row != nil; row = row.NextSibling() {
-		// Skip header and delimiter rows
-		if !bodyStarted {
-			// Check if this is the delimiter row (second row)
-			if _, ok := row.(*ext_ast.TableHeader); ok {
-				continue // Skip header
-			}
-			// Next row after header is delimiter, so skip it too
-			bodyStarted = true
+	// Parse rows
+	for i, rowNode := range tableNode.Children {
+		// Skip header row (index 0)
+		if i == 0 {
 			continue
 		}
 		
-		// Process actual data rows
-		if tableRow, ok := row.(*ext_ast.TableRow); ok {
-			var cells []string
-			for cell := tableRow.FirstChild(); cell != nil; cell = cell.NextSibling() {
-				if tableCell, ok := cell.(*ext_ast.TableCell); ok {
-					cellText := string(extractText(tableCell, source))
-					cells = append(cells, cellText)
+		if tableRow, ok := rowNode.(*ast.TableBody); ok {
+			for _, row := range tableRow.Children {
+				if tableRowNode, ok := row.(*ast.TableRow); ok {
+					var cells []string
+					for _, cell := range tableRowNode.Children {
+						if tableCell, ok := cell.(*ast.TableCell); ok {
+							cellText := string(extractText(tableCell, source))
+							cells = append(cells, cellText)
+						}
+					}
+					table.Rows = append(table.Rows, cells)
 				}
 			}
-			table.Rows = append(table.Rows, cells)
 		}
 	}
 	
@@ -276,41 +392,64 @@ func parseTable(tableNode *ext_ast.Table, source []byte) Table {
 // parseList parses a markdown list into our List struct
 func parseList(listNode *ast.List, source []byte) List {
 	list := List{
-		IsOrdered: listNode.Marker != '*', // Simplified detection
+		IsOrdered: listNode.ListFlags&ast.ListTypeOrdered != 0,
 	}
 	
-	for item := listNode.FirstChild(); item != nil; item = item.NextSibling() {
+	for _, item := range listNode.Children {
 		if listItem, ok := item.(*ast.ListItem); ok {
-			text := string(extractText(listItem, source))
-			list.Items = append(list.Items, text)
+			parsedItem := parseListItem(listItem, source)
+			list.Items = append(list.Items, parsedItem)
 		}
 	}
 	
 	return list
 }
 
-// parseGraph parses HTML blocks to detect graphs (like mermaid)
-func parseGraph(htmlNode *ast.HTMLBlock, source []byte) Graph {
-	content := string(htmlNode.Lines().Value(source))
+// parseListItem parses a list item, detecting if it's a task list item
+func parseListItem(itemNode *ast.ListItem, source []byte) ListItem {
+	listItem := ListItem{}
 	
-	// Simple detection for mermaid diagrams
-	if len(content) > 15 && content[:10] == "```mermaid" {
-		return Graph{
-			Type:    "mermaid",
-			Content: content,
+	// Check if this is a task list item by examining children
+	for _, child := range itemNode.GetChildren() {
+		// Look for a paragraph containing the checkbox pattern
+		if para, ok := child.(*ast.Paragraph); ok {
+			// Extract text from paragraph
+			text := string(extractText(para, source))
+			
+			// Check if it starts with a checkbox pattern
+			if len(text) >= 3 {
+				// Check for unchecked [ ]
+				if text[0] == '[' && text[1] == ' ' && text[2] == ']' {
+					checked := false
+					listItem.Checked = &checked
+					listItem.Text = text[3:] // Remove [ ] prefix
+					if len(listItem.Text) > 0 && listItem.Text[0] == ' ' {
+						listItem.Text = listItem.Text[1:] // Remove leading space
+					}
+					return listItem
+				}
+				
+				// Check for checked [x] or [X]
+				if text[0] == '[' && (text[1] == 'x' || text[1] == 'X') && text[2] == ']' {
+					checked := true
+					listItem.Checked = &checked
+					listItem.Text = text[3:] // Remove [x] prefix
+					if len(listItem.Text) > 0 && listItem.Text[0] == ' ' {
+						listItem.Text = listItem.Text[1:] // Remove leading space
+					}
+					return listItem
+				}
+			}
+			
+			// Regular list item
+			listItem.Text = text
+			return listItem
 		}
 	}
-
-	// Example for detecting other graph types like PlantUML:
-	// if len(content) > 15 && content[:8] == "```plantuml" {
-	//     return Graph{
-	//         Type:    "plantuml",
-	//         Content: content,
-	//     }
-	// }
 	
-	// Could add more graph types here
-	return Graph{} // Empty graph if not detected
+	// Fallback: extract text directly
+	listItem.Text = string(extractText(itemNode, source))
+	return listItem
 }
 
 // printNode prints a node and its contents
@@ -321,6 +460,14 @@ func printNode(node *Node, indent int) {
 	}
 	
 	fmt.Printf("%sHeading: %s (Level %d)\n", indentStr, node.Heading, node.Level)
+	
+	// Print key-value maps
+	for i, kvMap := range node.KeyValueMaps {
+		fmt.Printf("%sKey-Value Map %d:\n", indentStr, i+1)
+		for key, value := range kvMap {
+			fmt.Printf("%s  %s = %s\n", indentStr, key, value)
+		}
+	}
 	
 	// Print tables
 	for i, table := range node.Tables {
@@ -333,6 +480,11 @@ func printNode(node *Node, indent int) {
 		}
 	}
 	
+	// Print paragraphs
+	for i, paragraph := range node.Paragraphs {
+		fmt.Printf("%sParagraph %d: %s\n", indentStr, i+1, paragraph)
+	}
+	
 	// Print lists
 	for i, list := range node.Lists {
 		listType := "Unordered"
@@ -341,7 +493,12 @@ func printNode(node *Node, indent int) {
 		}
 		fmt.Printf("%sList %d (%s):\n", indentStr, i+1, listType)
 		for j, item := range list.Items {
-			fmt.Printf("%s  %d. %s\n", indentStr, j+1, item)
+			if item.Checked != nil {
+				// Print explicit true/false values for checked status
+				fmt.Printf("%s  %d. checked=%t %s\n", indentStr, j+1, *item.Checked, item.Text)
+			} else {
+				fmt.Printf("%s  %d. checked=false %s\n", indentStr, j+1, item.Text)
+			}
 		}
 	}
 	
@@ -349,13 +506,6 @@ func printNode(node *Node, indent int) {
 	for i, codeBlock := range node.CodeBlocks {
 		fmt.Printf("%sCode Block %d (Language: %s):\n", indentStr, i+1, codeBlock.Language)
 		fmt.Printf("%s  Content: %s\n", indentStr, codeBlock.Content)
-	}
-	
-	// Print graphs
-	for i, graph := range node.Graphs {
-		fmt.Printf("%sGraph %d (Type: %s)\n", indentStr, i+1, graph.Type)
-		// Content might be large, so we'll just show size
-		fmt.Printf("%s  Size: %d characters\n", indentStr, len(graph.Content))
 	}
 	
 	// Print children
@@ -400,6 +550,8 @@ ParseArg:
 				fmt.Printf("No key specified after --key or -k\n")
 				return
 			}
+		case "--debug-ast":
+			config.debugAST = true
 		default:
 			if len(currentArg) > 0 && currentArg[0] == '-' { // Is an option
 				fileFlag := "--file="
@@ -423,8 +575,8 @@ ParseArg:
 	}
 
 	if config.verbose {
-		fmt.Printf("flags: verbose=%t, help=%t, all=%t, markdown=%t, code=%t, file_path=%s, key=%s\n",
-			config.verbose, config.help, config.all, config.markdown, config.code, config.filePath, config.key)
+		fmt.Printf("flags: verbose=%t, help=%t, all=%t, markdown=%t, code=%t, file_path=%s, key=%s, debug_ast=%t\n",
+			config.verbose, config.help, config.all, config.markdown, config.code, config.filePath, config.key, config.debugAST)
 	}
 
 	for ; argi < argsCount; argi++ {

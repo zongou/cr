@@ -1,5 +1,16 @@
 # SCritps2
 
+| Program | Description |
+| ------- | ----------- |
+| cr      | Code Runner |
+
+| key | value |
+| --- | ----- |
+| A   | Apple |
+
+- [ ] Apple
+- [x] Banana
+
 ## tidy
 
 ```sh
