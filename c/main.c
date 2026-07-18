@@ -139,8 +139,7 @@ static void parse_custom_executors(void) {
             continue;
         }
         tolower_in_place(lang);
-        // add_custom_executor(lang, value);
-        printf("lang=%s, val=%s\n", lang, value);
+        // printf("lang=%s, val=%s\n", lang, value);
 
         char *value_copy = strdup(value);
         if (!value_copy) {
@@ -149,7 +148,6 @@ static void parse_custom_executors(void) {
 
         size_t arg_count = 0;
         for (char *token = strtok(value_copy, ","); token; token = strtok(NULL, ",")) {
-            printf("token=%s\n", token);
             arg_count++;
         }
 
@@ -164,10 +162,11 @@ static void parse_custom_executors(void) {
             return;
         }
 
+        free(value_copy);
+        value_copy = strdup(value);
         size_t idx = 0;
-        for (char *token = strtok(strdup(value), ","); token; token = strtok(NULL, ",")) {
+        for (char *token = strtok(value_copy, ","); token; token = strtok(NULL, ",")) {
             args[idx++] = strdup(token);
-            printf("token=%s\n", token);
         }
 
         struct Executor *executor = malloc(sizeof(*executor));
