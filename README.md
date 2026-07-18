@@ -53,7 +53,7 @@ export MD_C="sh,-c,printf '%s' '{CODE}'>/tmp/a.c && cc /tmp/a.c -o /tmp/a && /tm
 export MD_CPP="sh,-c,printf '%s' '{CODE}'>/tmp/a.cpp && c++ /tmp/a.cpp -o /tmp/a && /tmp/a"
 export MD_RUST="sh,-c,printf '%s' '{CODE}'>/tmp/a.rs && rustc /tmp/a.rs -o /tmp/a && /tmp/a"
 export MD_ZIG="sh,-c,printf '%s' '{CODE}'>/tmp/a.zig && zig run -lc /tmp/a.zig"
-${MD_EXE} -f test/hellos.md $@
+${CR_EXE} -f test/hellos.md $@
 
 ```
 
@@ -63,9 +63,9 @@ Prefixed env
 
 ```sh
 # Path to program
-echo MD_EXE=${MD_EXE}
+echo CR_EXE=${CR_EXE}
 # Path to markdown file
-echo MD_EXE=${MD_FILE}
+echo CR_FILE=${CR_FILE}
 ```
 
 ## Build
@@ -90,7 +90,7 @@ Build and install
 
 ```sh
 program=cr
-${MD_EXE} --file=${MD_FILE} release
+${CR_EXE} --file=${CR_FILE} release
 if command -v sudo >/dev/null; then
     sudo install "${program}" "/usr/local/bin/${program}"
 elif test "${PREFIX+1}"; then
@@ -103,10 +103,10 @@ fi
 Run some tests
 
 ```sh
-${MD_EXE}
-${MD_EXE} -f c/main.c || true
-${MD_EXE} -f test/test.md || true
-${MD_EXE} -f LICENSE || true
+${CR_EXE}
+${CR_EXE} -f c/main.c || true
+${CR_EXE} -f test/test.md || true
+${CR_EXE} -f LICENSE || true
 ```
 
 ### Stat
@@ -114,9 +114,9 @@ ${MD_EXE} -f LICENSE || true
 Build and print stat
 
 ```sh
-du -ahd0 ${MD_EXE}
-file ${MD_EXE}
-llvm-objdump -p ${MD_EXE} | grep LOAD
+du -ahd0 ${CR_EXE}
+file ${CR_EXE}
+llvm-objdump -p ${CR_EXE} | grep LOAD
 ```
 
 ### Benchmark
@@ -124,7 +124,7 @@ llvm-objdump -p ${MD_EXE} | grep LOAD
 Benchmark this program
 
 ```sh
-hyperfine "${MD_EXE} env" "$@"
+hyperfine "${CR_EXE} env" "$@"
 ```
 
 ## Examples
@@ -132,9 +132,9 @@ hyperfine "${MD_EXE} env" "$@"
 Run example code blocks
 
 ```sh
-${MD_EXE} env
-${MD_EXE} args -- foo bar
-echo Hello | ${MD_EXE} stdin
+${CR_EXE} env
+${CR_EXE} args -- foo bar
+echo Hello | ${CR_EXE} stdin
 ```
 
 ### Echo

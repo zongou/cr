@@ -16,6 +16,19 @@ import (
 	"github.com/xlab/treeprint"
 )
 
+var config = struct {
+	program string
+
+	// Flags
+	help bool
+	code bool
+	// version  string
+
+	// Options
+	filePath string
+	logFile  string
+}{}
+
 const (
 	exitFailure = 1
 	exitSuccess = 0
@@ -66,23 +79,49 @@ var executors = map[string][]string{
 	"powershell": {"powershell.exe", "-c", "{CODE}"},
 }
 
-var (
-	customExecutors = map[string][]string{}
-	mergedExecutors = map[string][]string{}
-)
+var customExecutors = map[string][]string{}
 
-var config = struct {
-	program string
+func parseCustomExecutors() {
+	// // Get and Set custom executor from enviroment
+	// lang := string(newCodeBlock.Detail.Lang.Text)
+	// if customExecutorEnv := os.Getenv("MD_" + strings.ToUpper(lang)); customExecutorEnv != "" {
+	// 	if customExecutors[lang] == nil {
+	// 		customExecutor := strings.Split(customExecutorEnv, ",")
+	// 		log.Println(customExecutor)
+	// 		customExecutors[lang] = customExecutor
+	// 	}
+	// }
 
-	// Flags
-	help bool
-	code bool
-	// version  string
+	// Retrieve all environment variables
+	envVars := os.Environ()
 
-	// Options
-	filePath string
-	logFile  string
-}{}
+	// Declare a prefix to filter environment variables
+	prefix := "MD_"
+
+	// Iterate over the environment variables
+	for _, envVar := range envVars {
+		// Split the variable into key and value
+		kv := strings.SplitN(envVar, "=", 2) // Split at the first '='
+		if len(kv) == 2 && strings.HasPrefix(kv[0], prefix) {
+			key := kv[0]
+			val := kv[1]
+
+			lang := strings.ToLower(key[3:])
+			customExecutor := strings.Split(val, ",")
+			customExecutors[lang] = customExecutor
+		}
+	}
+}
+
+func getExecutor(lang string) []string {
+	log.Printf("customExecutors[lang]: %v\n", customExecutors[lang])
+	log.Printf("executors[lang]: %v\n", executors[lang])
+	if customExecutors[lang] != nil {
+		return customExecutors[lang]
+	} else {
+		return executors[lang]
+	}
+}
 
 func findDoc() (string, bool) {
 	dir, err := os.Getwd()
@@ -195,17 +234,6 @@ func (r *MDNodeParser) LeaveBlock(t ast.BlockType, detail any) error {
 			}
 		}
 		r.content = ""
-
-		// Get and Set custom executor from enviroment
-		lang := string(newCodeBlock.Detail.Lang.Text)
-		if customExecutorEnv := os.Getenv("MD_" + strings.ToUpper(lang)); customExecutorEnv != "" {
-			if customExecutors[lang] == nil {
-				customExecutor := strings.Split(customExecutorEnv, ",")
-				log.Println(customExecutor)
-				customExecutors[lang] = customExecutor
-			}
-		}
-
 	// case ast.BlockHTML:
 	case ast.BlockP:
 		if r.last != nil && r.last.CodeBlock == nil && r.content != "" {
@@ -325,7 +353,7 @@ func NodeToTree(node *MDNode) treeprint.Tree {
 	var walk func(*MDNode, *treeprint.Tree)
 	walk = func(node *MDNode, parent *treeprint.Tree) {
 		for currentNode := node.Child; currentNode != nil; currentNode = currentNode.Next {
-			if currentNode.CodeBlock != nil && mergedExecutors[string(currentNode.CodeBlock.Detail.Lang.Text)] != nil || currentNode.Child != nil {
+			if currentNode.CodeBlock != nil && getExecutor(string(currentNode.CodeBlock.Detail.Info.Text)) != nil || currentNode.Child != nil {
 				currentTree := (*parent).AddBranch(strings.ToLower(currentNode.Text))
 				walk(currentNode, &currentTree)
 			}
@@ -345,7 +373,7 @@ func NodeToTreeWithDesc(node *MDNode) treeprint.Tree {
 	var getMaxBranchWidth func(*MDNode)
 	getMaxBranchWidth = func(node *MDNode) {
 		for currentNode := node.Child; currentNode != nil; currentNode = currentNode.Next {
-			if currentNode.CodeBlock != nil && mergedExecutors[string(currentNode.CodeBlock.Detail.Lang.Text)] != nil || currentNode.Child != nil {
+			if currentNode.CodeBlock != nil && getExecutor(string(currentNode.CodeBlock.Detail.Info.Text)) != nil || currentNode.Child != nil {
 				branchWidth := (currentNode.HeadingDetail.Level-1)*branchSymbolWidth + runewidth.StringWidth(currentNode.Text)
 				if branchWidth > maxBranchWidth {
 					maxBranchWidth = branchWidth
@@ -359,7 +387,7 @@ func NodeToTreeWithDesc(node *MDNode) treeprint.Tree {
 	var walk func(*MDNode, *treeprint.Tree)
 	walk = func(node *MDNode, parent *treeprint.Tree) {
 		for currentNode := node.Child; currentNode != nil; currentNode = currentNode.Next {
-			if currentNode.CodeBlock != nil && mergedExecutors[string(currentNode.CodeBlock.Detail.Lang.Text)] != nil || currentNode.Child != nil {
+			if currentNode.CodeBlock != nil && getExecutor(string(currentNode.CodeBlock.Detail.Info.Text)) != nil || currentNode.Child != nil {
 				branchVal := strings.ToLower(currentNode.Text) + " " + strings.Repeat(" ", maxBranchWidth-(currentNode.HeadingDetail.Level-1)*branchSymbolWidth-runewidth.StringWidth(currentNode.Text)) + " " + currentNode.Desc
 				currentTree := (*parent).AddBranch(branchVal)
 				walk(currentNode, &currentTree)
@@ -379,15 +407,21 @@ func execNode(node *MDNode, originArgs []string) int {
 		return exitFailure
 	}
 
-	log.Printf("customExecutors: %v\n", customExecutors)
-	log.Printf("mergedExecutors: %v\n", mergedExecutors)
-
 	for currentCodeBlock := node.CodeBlock; currentCodeBlock != nil; currentCodeBlock = currentCodeBlock.Next {
 		// Lookup language executor
 		lang := string(currentCodeBlock.Detail.Lang.Text)
 
-		executor, exists := mergedExecutors[string(lang)]
-		if !exists {
+		// executor, exists := getExecutor(lang)
+		// if !exists {
+		// 	log.Printf("unsupported code block type: %s\n", lang)
+		// 	fmt.Fprintf(os.Stderr, "unsupported code block type: %s\n", lang)
+		// 	return exitFailure
+		// }
+
+		executor := getExecutor(lang)
+		log.Printf("customExecutors: %v\n", customExecutors)
+		log.Printf("executor: %v\n", executor)
+		if executor == nil {
 			log.Printf("unsupported code block type: %s\n", lang)
 			fmt.Fprintf(os.Stderr, "unsupported code block type: %s\n", lang)
 			return exitFailure
@@ -547,8 +581,10 @@ ParseArg:
 		}
 	}
 
-	os.Setenv("MD_FILE", config.filePath)
-	os.Setenv("MD_EXE", os.Args[0])
+	os.Setenv("CR_FILE", config.filePath)
+	os.Setenv("CR_EXE", os.Args[0])
+
+	parseCustomExecutors()
 
 	// Parse MarkDown document
 	docNode, err := ParseFile(config.filePath)
@@ -557,17 +593,6 @@ ParseArg:
 		fmt.Fprintf(os.Stderr, "parsing file: %v\n", err)
 		os.Exit(exitFailure)
 	}
-
-	// Merge executors map and customExecutors map
-	merged := make(map[string][]string)
-	for key, values := range executors {
-		merged[key] = append([]string{}, values...) // create a copy to avoid mutating the original map
-	}
-
-	for key, values := range customExecutors {
-		merged[key] = append([]string{}, values...) // create a copy to keep the original map safe
-	}
-	mergedExecutors = merged
 
 	// for ; argi < argsCount; argi++ {
 	// 	fmt.Printf("os.Args[argi]: %v\n", os.Args[argi])
