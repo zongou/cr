@@ -847,7 +847,7 @@ void show_hint(MD_NODE *doc_node) {
         int max_branch_width = get_max_branch_width(current);
 
         Tree *docTree = new_tree(doc_node->text);
-        node_to_tree_with_desc(doc_node, docTree, max_branch_width);
+        node_to_tree_with_desc(current, docTree, max_branch_width);
         char *tree_str = print_tree(docTree);
         printf("%s", tree_str);
     }
@@ -979,7 +979,7 @@ int main(int argc, char **argv) {
     setenv("CR_FILE", config.file_path, 1);
     log_printf("Using doc: %s\n", config.file_path);
     setenv("CR_EXE", argv[0], 1);
-    parse_custom_executors();
+    // parse_custom_executors();
 
     MD_NODE *doc_node = parse_file(config.file_path);
 
