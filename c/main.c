@@ -15,7 +15,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-struct {
+struct config {
     char *program;
 
     // Flags
@@ -27,6 +27,24 @@ struct {
     char *log_file;
 } config;
 
+char *substr(char *str, int start, int length) {
+    if (!str || start < 0 || length < 0 || start + length > strlen(str)) {
+        return NULL;
+    }
+    char *sub = (char *)malloc(length + 1);
+    memcpy(sub, str + start, length);
+    sub[length] = '\0';
+    return sub;
+}
+
+char *strlower(char *str) {
+    char *lower = strdup(str);
+    for (int i = 0; lower[i]; i++) {
+        lower[i] = tolower(lower[i]);
+    }
+    return lower;
+}
+
 // Language configuration structure
 struct Executor {
     const char  *name;
@@ -34,8 +52,7 @@ struct Executor {
     size_t       prefix_args_count;
 };
 
-// Language configuration argument arrays
-static const char *sh_args[]         = {"$NAME", "-euc", "$CODE", "--"};
+static const char *sh_args[]         = {"sh", "-euc", "$CODE", "--"};
 static const char *awk_args[]        = {"awk", "$CODE"};
 static const char *node_args[]       = {"node", "-e", "$CODE"};
 static const char *python_args[]     = {"python", "-c", "$CODE"};
@@ -44,7 +61,6 @@ static const char *php_args[]        = {"php", "-r", "$CODE"};
 static const char *cmd_args[]        = {"cmd.exe", "/c", "$CODE"};
 static const char *powershell_args[] = {"powershell.exe", "-c", "$CODE"};
 
-// Language configuration mappings
 static const struct Executor executors[] = {
     {"sh", sh_args, 4},
     {"bash", sh_args, 4},
@@ -66,17 +82,143 @@ static const struct Executor executors[] = {
     {"batch", cmd_args, 3},
     {"powershell", powershell_args, 3}};
 
+typedef struct custom_executor {
+    struct Executor        *executor;
+    struct custom_executor *next;
+} CustomExecutor;
+
+static CustomExecutor *custom_executors = NULL;
+
+static void tolower_in_place(char *str) {
+    for (size_t i = 0; str[i]; i++) {
+        str[i] = (char)tolower((unsigned char)str[i]);
+    }
+}
+
+static void toupper_in_place(char *str) {
+    for (size_t i = 0; str[i]; i++) {
+        str[i] = (char)toupper((unsigned char)str[i]);
+    }
+}
+
+static char *trim_whitespace(char *str) {
+    while (*str == ' ' || *str == '\t' || *str == '\r' || *str == '\n') {
+        str++;
+    }
+
+    size_t len = strlen(str);
+    while (len > 0 && (str[len - 1] == ' ' || str[len - 1] == '\t' || str[len - 1] == '\r' || str[len - 1] == '\n')) {
+        str[--len] = '\0';
+    }
+
+    return str;
+}
+
+static void parse_custom_executors(void) {
+    extern char **environ;
+    for (char **env = environ; *env; env++) {
+        char *env_entry = *env;
+        if (strncmp(env_entry, "MD_", 3) != 0) {
+            continue;
+        }
+
+        char *separator = strchr(env_entry, '=');
+        if (!separator) {
+            continue;
+        }
+
+        *separator  = '\0';
+        char *key   = env_entry + 3;
+        char *value = separator + 1;
+        if (!*key || !*value) {
+            continue;
+        }
+
+        char *lang = strdup(key);
+        if (!lang) {
+            continue;
+        }
+        tolower_in_place(lang);
+        // add_custom_executor(lang, value);
+        printf("lang=%s, val=%s\n", lang, value);
+
+        char *value_copy = strdup(value);
+        if (!value_copy) {
+            return;
+        }
+
+        size_t arg_count = 0;
+        for (char *token = strtok(value_copy, ","); token; token = strtok(NULL, ",")) {
+            printf("token=%s\n", token);
+            arg_count++;
+        }
+
+        if (arg_count == 0) {
+            free(value_copy);
+            return;
+        }
+
+        const char **args = calloc(arg_count, sizeof(char *));
+        if (!args) {
+            free(value_copy);
+            return;
+        }
+
+        size_t idx = 0;
+        for (char *token = strtok(strdup(value), ","); token; token = strtok(NULL, ",")) {
+            args[idx++] = strdup(token);
+            printf("token=%s\n", token);
+        }
+
+        struct Executor *executor = malloc(sizeof(*executor));
+        if (!executor) {
+            free(value_copy);
+            for (size_t i = 0; i < idx; i++) {
+                free((char *)args[i]);
+            }
+            free(args);
+            return;
+        }
+
+        executor->name              = strdup(lang);
+        executor->prefix_args       = args;
+        executor->prefix_args_count = arg_count;
+
+        CustomExecutor *new_custom_executor = malloc(sizeof(*env_entry));
+        if (!new_custom_executor) {
+            free((void *)executor->name);
+            for (size_t i = 0; i < idx; i++) {
+                free((char *)args[i]);
+            }
+            free(args);
+            free(executor);
+            free(value_copy);
+            return;
+        }
+
+        new_custom_executor->executor = executor;
+        new_custom_executor->next     = custom_executors;
+        custom_executors              = new_custom_executor;
+
+        free(value_copy);
+        free(lang);
+    }
+}
+
 const struct Executor *get_executor(const char *lang) {
-    const struct Executor *config = NULL;
-    // Find language configuration
-    for (size_t i = 0; i < sizeof(executors) / sizeof(executors[0]);
-         i++) {
-        if (strcasecmp(executors[i].name, lang) == 0) {
-            config = &executors[i];
-            break;
+    for (CustomExecutor *e = custom_executors; e; e = e->next) {
+        if (strcasecmp(e->executor->name, lang) == 0) {
+            return e->executor;
         }
     }
-    return config;
+
+    for (size_t i = 0; i < sizeof(executors) / sizeof(executors[0]); i++) {
+        if (strcasecmp(executors[i].name, lang) == 0) {
+            return &executors[i];
+        }
+    }
+
+    return NULL;
 }
 
 // Code block structure
@@ -132,24 +274,6 @@ typedef struct {
     MD_NODE *root;
     MD_NODE *last;
 } CallbackData;
-
-char *substr(char *str, int start, int length) {
-    if (!str || start < 0 || length < 0 || start + length > strlen(str)) {
-        return NULL;
-    }
-    char *sub = (char *)malloc(length + 1);
-    memcpy(sub, str + start, length);
-    sub[length] = '\0';
-    return sub;
-}
-
-char *strlower(char *str) {
-    char *lower = strdup(str);
-    for (int i = 0; lower[i]; i++) {
-        lower[i] = tolower(lower[i]);
-    }
-    return lower;
-}
 
 void print_indention(int count) {
     for (int i = 0; i < count; i++) {
@@ -672,6 +796,7 @@ int exec_node(MD_NODE *node, char **args, int num_args) {
                     // Fill argument array with prefix args first
                     int arg_idx = 0;
                     for (size_t i = 0; i < executor->prefix_args_count; i++) {
+                        printf("prefix[%ld]=%s\n", i, executor->prefix_args[i]);
                         if (strcmp(executor->prefix_args[i], "$CODE") == 0) {
                             exec_args[arg_idx++] = block->content;
                         } else if (strcmp(executor->prefix_args[i], "$NAME") == 0) {
@@ -851,9 +976,11 @@ int main(int argc, char **argv) {
         fprintf(stderr, "No markdown file found\n");
         return EXIT_FAILURE;
     }
-    setenv("MD_FILE", config.file_path, 1);
+
+    setenv("CR_FILE", config.file_path, 1);
     log_printf("Using doc: %s\n", config.file_path);
-    setenv("MD_EXE", argv[0], 1);
+    setenv("CR_EXE", argv[0], 1);
+    parse_custom_executors();
 
     MD_NODE *doc_node = parse_file(config.file_path);
 
