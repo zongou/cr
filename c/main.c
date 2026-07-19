@@ -52,14 +52,14 @@ struct Executor {
     size_t       prefix_args_count;
 };
 
-static const char *sh_args[]         = {"sh", "-euc", "$CODE", "--"};
-static const char *awk_args[]        = {"awk", "$CODE"};
-static const char *node_args[]       = {"node", "-e", "$CODE"};
-static const char *python_args[]     = {"python", "-c", "$CODE"};
-static const char *ruby_args[]       = {"ruby", "-e", "$CODE"};
-static const char *php_args[]        = {"php", "-r", "$CODE"};
-static const char *cmd_args[]        = {"cmd.exe", "/c", "$CODE"};
-static const char *powershell_args[] = {"powershell.exe", "-c", "$CODE"};
+static const char *sh_args[]         = {"{LANG}", "-euc", "{CODE}", "--"};
+static const char *awk_args[]        = {"awk", "{CODE}"};
+static const char *node_args[]       = {"node", "-e", "{CODE}"};
+static const char *python_args[]     = {"python", "-c", "{CODE}"};
+static const char *ruby_args[]       = {"ruby", "-e", "{CODE}"};
+static const char *php_args[]        = {"php", "-r", "{CODE}"};
+static const char *cmd_args[]        = {"cmd.exe", "/c", "{CODE}"};
+static const char *powershell_args[] = {"powershell.exe", "-c", "{CODE}"};
 
 static const struct Executor executors[] = {
     {"sh", sh_args, 4},
@@ -796,9 +796,9 @@ int exec_node(MD_NODE *node, char **args, int num_args) {
                     int arg_idx = 0;
                     for (size_t i = 0; i < executor->prefix_args_count; i++) {
                         // printf("prefix[%ld]=%s\n", i, executor->prefix_args[i]);
-                        if (strcmp(executor->prefix_args[i], "$CODE") == 0) {
+                        if (strcmp(executor->prefix_args[i], "{CODE}") == 0) {
                             exec_args[arg_idx++] = block->content;
-                        } else if (strcmp(executor->prefix_args[i], "$NAME") == 0) {
+                        } else if (strcmp(executor->prefix_args[i], "{LANG}") == 0) {
                             exec_args[arg_idx++] = (char *)executor->name;
                         } else {
                             exec_args[arg_idx++] = (char *)executor->prefix_args[i];
