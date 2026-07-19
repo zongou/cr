@@ -157,6 +157,15 @@ Build for Release.
 go build -ldflags="-w -s" . "$@"
 ```
 
+### Release_C
+
+Build for Release.
+
+```sh
+target=$(uname -m)
+zig cc -target ${target}-linux-musl -o cr c/main.c -static -s "$@"
+```
+
 ### Install
 
 Install this program.
