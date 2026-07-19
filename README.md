@@ -2,25 +2,25 @@
 
 MarkDown CodeBlock runner.
 
+## Echo
+
+A simple example.
+
+```sh
+echo "$@"
+```
+
 ## Quick Start
 
-To execute code blocks under a heading named [Echo](#echo) with arguments `Hello, 世界！`.
+To execute code blocks under the heading [Echo](#echo) with arguments `Hello, 世界！`.
 
 ```shell
 cr echo Hello, 世界！
 ```
 
-`echo` indicates the heading, and `Hello World!` will be passed as arguments.
+## Features
 
-Run without arguments will give you a hint of all available headings.
-
-To print codeblocks under the heading [echo]
-
-```shell
-cr -c echo
-```
-
-## Code Block Support
+### Built-in supported codeblock types
 
 - sh
 - bash
@@ -42,30 +42,82 @@ cr -c echo
 - ps2
 - powershell
 
-To handle codeblock type not in the predescribed list or to override,  
-you can export env in the format of `MD_LANG=foo,bar`
+### Handle any codeblock
 
-For examples:
+Set env `MD_ALIA=foo,bar`
+
+For example:
 
 ```shell
 export MD_PYTHON="python3,-c,{CODE}"
+export MD_PY="${MD_PYTHON}"
 export MD_C="sh,-c,printf '%s' '{CODE}'>/tmp/a.c && cc /tmp/a.c -o /tmp/a && /tmp/a"
 export MD_CPP="sh,-c,printf '%s' '{CODE}'>/tmp/a.cpp && c++ /tmp/a.cpp -o /tmp/a && /tmp/a"
+export MD_CXX="${MD_CPP}"
+export MD_C++="${MD_CPP}"
 export MD_RUST="sh,-c,printf '%s' '{CODE}'>/tmp/a.rs && rustc /tmp/a.rs -o /tmp/a && /tmp/a"
+export MD_RS="${MD_RUST}"
 export MD_ZIG="sh,-c,printf '%s' '{CODE}'>/tmp/a.zig && zig run -lc /tmp/a.zig"
-${CR_EXE} -f test/hellos.md $@
-
 ```
 
-## Env
+### Built-in env
 
-Prefixed env
+- CR_EXE: Path to program.
+- CR_FILE: Path to markdown file.
 
 ```sh
-# Path to program
 echo CR_EXE=${CR_EXE}
-# Path to markdown file
 echo CR_FILE=${CR_FILE}
+```
+
+### Arguments
+
+Example to pass arguments.
+
+```sh
+echo "Recieved arguments: $*"
+```
+
+### ExitCode
+
+Example with exit code.
+
+```sh
+exit_code=$(shuf -i 1-255 -n 1)
+echo "Script exit with code ${exit_code}"
+exit ${exit_code}
+```
+
+### Pipe
+
+Example to read stdin.
+
+```sh
+echo "Recieved stdin: $(cat)"
+```
+
+### C_Hello
+
+```c
+#include <stdio.h>
+
+int main() {
+    printf("Hello, 世界！ I am C.\n");
+    return 0;
+}
+```
+
+### Examples
+
+Demonstrate these features.
+
+```sh
+${CR_EXE} "built-in env"
+${CR_EXE} arguments foo bar
+echo Hello | ${CR_EXE} pipe
+${CR_EXE} exitcode || echo "Recieved exitcode $?"
+export MD_C="sh,-c,printf '%s' '{CODE}'>/tmp/a.c && cc /tmp/a.c -o /tmp/a && /tmp/a"
+${CR_EXE} c_hello
 ```
 
 ## Run
@@ -144,50 +196,6 @@ Benchmark this program
 
 ```sh
 hyperfine "${CR_EXE} env" "$@"
-```
-
-## Examples
-
-Run example code blocks
-
-```sh
-${CR_EXE} env
-${CR_EXE} args -- foo bar
-echo Hello | ${CR_EXE} stdin
-```
-
-### Echo
-
-Print input
-
-```sh
-echo "$@"
-```
-
-### Args
-
-Example to pass arguments
-
-```sh
-echo "Shellscript with arguments: $*"
-```
-
-### Error
-
-Example with exit code
-
-```sh
-exit_code=$(shuf -i 1-255 -n 1)
-echo "Script exits with code ${exit_code}"
-exit ${exit_code}
-```
-
-### stdin
-
-Example to read stdin
-
-```sh
-echo "Catched stdin: $(cat)"
 ```
 
 ---
