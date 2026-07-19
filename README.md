@@ -136,7 +136,7 @@ zig run -lc c/main.c -- "$@"
 
 ### Build
 
-Build this program
+Build for debug.
 
 ```sh
 go build . "$@"
@@ -151,7 +151,7 @@ zig cc -target ${target}-linux-musl -o cr c/main.c "$@"
 
 ### Release
 
-Build staticlly and stripped
+Build for Release.
 
 ```sh
 go build -ldflags="-w -s" . "$@"
@@ -159,7 +159,7 @@ go build -ldflags="-w -s" . "$@"
 
 ### Install
 
-Build and install
+Install this program.
 
 ```sh
 program=cr
@@ -173,7 +173,7 @@ fi
 
 ### Test
 
-Run some tests
+Some tests.
 
 ```sh
 ${CR_EXE}
@@ -184,7 +184,7 @@ ${CR_EXE} -f LICENSE || true
 
 ### Stat
 
-Build and print stat
+Build and print stat.
 
 ```sh
 du -ahd0 ${CR_EXE}
@@ -194,7 +194,7 @@ llvm-objdump -p ${CR_EXE} | grep LOAD
 
 ### Benchmark
 
-Benchmark this program
+Some benchmarks.
 
 ```sh
 hyperfine "${CR_EXE} env" "$@"
