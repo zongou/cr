@@ -92,7 +92,7 @@ go build . "$@"
 
 ```sh
 target=$(uname -m)
-zig cc -target ${target}-linux-musl -o cr c/main.c
+zig cc -target ${target}-linux-musl -o cr c/main.c "$@"
 ```
 
 ### Release
