@@ -124,11 +124,15 @@ ${CR_EXE} c_hello
 
 ### Run
 
+Run Go version.
+
 ```sh
 go run . "$@"
 ```
 
 ### Run_C
+
+Run C version.
 
 ```sh
 zig run -lc c/main.c -- "$@"
@@ -139,7 +143,7 @@ zig run -lc c/main.c -- "$@"
 Build Go version for debug.
 
 ```sh
-go build . "$@"
+go build "$@" .
 ```
 
 ### Build_C
