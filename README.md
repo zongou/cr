@@ -198,7 +198,7 @@ ${CR_EXE} -f LICENSE || true
 
 ### Stat
 
-Build and print stat.
+Print status of program.
 
 ```sh
 du -ahd0 ${CR_EXE}
