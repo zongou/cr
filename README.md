@@ -113,7 +113,7 @@ int main() {
 Demonstrate these features.
 
 ```sh
-${CR_EXE} "built-in env"
+${CR_EXE} env
 ${CR_EXE} arguments foo bar
 echo Hello | ${CR_EXE} pipe
 ${CR_EXE} exitcode || echo "Recieved exitcode $?"
