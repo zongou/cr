@@ -163,7 +163,6 @@ Install this program.
 
 ```sh
 program=cr
-${CR_EXE} --file=${CR_FILE} release
 if command -v sudo >/dev/null; then
     sudo install "${program}" "/usr/local/bin/${program}"
 elif test "${PREFIX+1}"; then
