@@ -136,13 +136,15 @@ zig run -lc c/main.c -- "$@"
 
 ### Build
 
-Build for debug.
+Build Go version for debug.
 
 ```sh
 go build . "$@"
 ```
 
 ### Build_C
+
+Build C version for debug.
 
 ```sh
 target=$(uname -m)
@@ -151,7 +153,7 @@ zig cc -target ${target}-linux-musl -o cr c/main.c "$@"
 
 ### Release
 
-Build for Release.
+Build Go version for Release.
 
 ```sh
 go build -ldflags="-w -s" . "$@"
@@ -159,7 +161,7 @@ go build -ldflags="-w -s" . "$@"
 
 ### Release_C
 
-Build for Release.
+Build C version for Release.
 
 ```sh
 target=$(uname -m)
@@ -168,7 +170,7 @@ zig cc -target ${target}-linux-musl -o cr c/main.c -static -s "$@"
 
 ### Install
 
-Install this program.
+Install what is built.
 
 ```sh
 program=cr
