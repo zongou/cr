@@ -62,8 +62,7 @@ export MD_ZIG="sh,-c,printf '%s' '{CODE}'>/tmp/a.zig && zig run -lc /tmp/a.zig"
 
 ### Built-in env
 
-- CR_EXE: Path to program.
-- CR_FILE: Path to markdown file.
+Print built-in env.
 
 ```sh
 echo CR_EXE=${CR_EXE}
@@ -116,23 +115,26 @@ ${CR_EXE} "built-in env"
 ${CR_EXE} arguments foo bar
 echo Hello | ${CR_EXE} pipe
 ${CR_EXE} exitcode || echo "Recieved exitcode $?"
-export MD_C="sh,-c,printf '%s' '{CODE}'>/tmp/a.c && cc /tmp/a.c -o /tmp/a && /tmp/a"
+export TMPDIR=${TMPDIR-/tmp}
+export MD_C="sh,-c,printf '%s' '{CODE}'>${TMPDIR}/a.c && cc ${TMPDIR}/a.c -o $TMPDIR/a && $TMPDIR/a"
 ${CR_EXE} c_hello
 ```
 
-## Run
+## Development
+
+### Run
 
 ```sh
 go run . "$@"
 ```
 
-## Run_C
+### Run_C
 
 ```sh
 zig run -lc c/main.c -- "$@"
 ```
 
-## Build
+### Build
 
 Build this program
 
@@ -140,7 +142,7 @@ Build this program
 go build . "$@"
 ```
 
-## Build_C
+### Build_C
 
 ```sh
 target=$(uname -m)
@@ -169,7 +171,7 @@ elif test "${PREFIX+1}"; then
 fi
 ```
 
-## Test
+### Test
 
 Run some tests
 
