@@ -795,7 +795,7 @@ int exec_node(MD_NODE *node, char **args, int num_args) {
                     // Fill argument array with prefix args first
                     int arg_idx = 0;
                     for (size_t i = 0; i < executor->prefix_args_count; i++) {
-                        printf("prefix[%ld]=%s\n", i, executor->prefix_args[i]);
+                        // printf("prefix[%ld]=%s\n", i, executor->prefix_args[i]);
                         if (strcmp(executor->prefix_args[i], "$CODE") == 0) {
                             exec_args[arg_idx++] = block->content;
                         } else if (strcmp(executor->prefix_args[i], "$NAME") == 0) {
@@ -979,7 +979,7 @@ int main(int argc, char **argv) {
     setenv("CR_FILE", config.file_path, 1);
     log_printf("Using doc: %s\n", config.file_path);
     setenv("CR_EXE", argv[0], 1);
-    // parse_custom_executors();
+    parse_custom_executors();
 
     MD_NODE *doc_node = parse_file(config.file_path);
 
