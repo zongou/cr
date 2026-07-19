@@ -745,6 +745,44 @@ void node_to_tree_with_desc(MD_NODE *node, Tree *parent, int max_branch_width) {
     }
 }
 
+char *str_replace_all(const char *source, const char *old, const char *new) {
+    if (!source || !old || !new || old[0] == '\0') {
+        return NULL;
+    }
+
+    size_t old_len = strlen(old);
+    size_t new_len = strlen(new);
+    size_t count   = 0;
+    for (const char *result = strstr(source, old); result;
+         result             = strstr(result + old_len, old)) {
+        count++;
+    }
+
+    size_t source_len = strlen(source);
+    size_t target_len = source_len + count * (new_len - old_len) + 1;
+    char  *target     = malloc(target_len);
+    if (!target) {
+        return NULL;
+    }
+
+    // printf("count=%ld\n", count);
+
+    size_t target_index = 0;
+    for (size_t source_index = 0; source[source_index] != '\0';) {
+        if (strncmp(source + source_index, old, old_len) == 0) {
+            memcpy(target + target_index, new, new_len);
+            source_index += old_len;
+            target_index += new_len;
+        } else {
+            target[target_index++] = source[source_index++];
+        }
+    }
+
+    target[target_index] = '\0';
+    // printf("target=%s\n", target);
+    return target;
+}
+
 // Execute code blocks for a given node
 int exec_node(MD_NODE *node, char **args, int num_args) {
     int exit_code;
@@ -796,13 +834,14 @@ int exec_node(MD_NODE *node, char **args, int num_args) {
                     int arg_idx = 0;
                     for (size_t i = 0; i < executor->prefix_args_count; i++) {
                         // printf("prefix[%ld]=%s\n", i, executor->prefix_args[i]);
-                        if (strcmp(executor->prefix_args[i], "{CODE}") == 0) {
-                            exec_args[arg_idx++] = block->content;
-                        } else if (strcmp(executor->prefix_args[i], "{LANG}") == 0) {
-                            exec_args[arg_idx++] = (char *)executor->name;
+                        if (strstr(executor->prefix_args[i], "{LANG}")) {
+                            exec_args[arg_idx] = str_replace_all(executor->prefix_args[i], "{LANG}", block->info);
+                        } else if (strstr(executor->prefix_args[i], "{CODE}")) {
+                            exec_args[arg_idx] = str_replace_all(executor->prefix_args[i], "{CODE}", block->content);
                         } else {
-                            exec_args[arg_idx++] = (char *)executor->prefix_args[i];
+                            exec_args[arg_idx] = (char *)executor->prefix_args[i];
                         }
+                        arg_idx++;
                     }
 
                     // Add user arguments
