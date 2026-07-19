@@ -68,12 +68,31 @@ echo CR_EXE=${CR_EXE}
 echo CR_FILE=${CR_FILE}
 ```
 
+## Run
+
+```sh
+go run . "$@"
+```
+
+## Run_C
+
+```sh
+zig run -lc c/main.c -- "$@"
+```
+
 ## Build
 
 Build this program
 
 ```sh
 go build . "$@"
+```
+
+## Build_C
+
+```sh
+target=$(uname -m)
+zig cc -target ${target}-linux-musl -o cr c/main.c
 ```
 
 ### Release
