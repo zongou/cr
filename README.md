@@ -60,7 +60,7 @@ export MD_RS="${MD_RUST}"
 export MD_ZIG="sh,-c,printf '%s' '{CODE}'>/tmp/a.zig && zig run -lc /tmp/a.zig"
 ```
 
-### Built-in env
+### Env
 
 Print built-in env.
 
