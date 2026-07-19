@@ -95,6 +95,19 @@ Example to read stdin.
 echo "Recieved stdin: $(cat)"
 ```
 
+### C_Hello
+
+C program example will be used later.
+
+```c
+#include <stdio.h>
+
+int main() {
+    printf("Hello, 世界！ I am C.\n");
+    return 0;
+}
+```
+
 ### Examples
 
 Demonstrate these features.
@@ -107,17 +120,6 @@ ${CR_EXE} exitcode || echo "Recieved exitcode $?"
 export TMPDIR=${TMPDIR-/tmp}
 export MD_C="sh,-c,printf '%s' '{CODE}'>${TMPDIR}/a.c && cc ${TMPDIR}/a.c -o $TMPDIR/a && $TMPDIR/a"
 ${CR_EXE} c_hello
-```
-
-### C_Hello
-
-```c
-#include <stdio.h>
-
-int main() {
-    printf("Hello, 世界！ I am C.\n");
-    return 0;
-}
 ```
 
 ## Development
