@@ -388,7 +388,7 @@ func nodeToTreeWithDesc(node *MDNode) treeprint.Tree {
 func printOne(node *MDNode) {
 	for currentNode := node.Child; currentNode != nil; currentNode = currentNode.Next {
 		if currentNode.CodeBlock != nil && getExecutor(string(currentNode.CodeBlock.Detail.Info.Text)) != nil {
-			fmt.Println(currentNode.Text)
+			fmt.Println(strings.ToLower(currentNode.Text))
 			printOne(currentNode)
 		} else if currentNode.Child != nil {
 			printOne(currentNode)
