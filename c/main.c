@@ -901,7 +901,7 @@ void show_help() {
            "  -h, --help              Print this help message\n"
            "  -c, --code              Print node code block\n"
            "  -1 [HEADING]            List one command per line\n"
-           "  -t [HEADING]            List one command per line\n"
+           "  -t, --tree [HEADING]    List one command per line\n"
            "  -f, --file [FILE]       Specify the file to parse\n"
            "  -l, --log-file [FILE]   Path to log file for diagnostics\n",
            config.program);
@@ -980,6 +980,8 @@ int main(int argc, char **argv) {
                     config.help = 1;
                 } else if (strcmp(current_arg, "--code") == 0) {
                     config.code = 1;
+                } else if (strcmp(current_arg, "--tree") == 0) {
+                    config.tree = 1;
                 } else if (strncmp(current_arg, "--file=", 7) == 0 && current_arg_len > 7) { // Pattern: --file=**
                     config.file_path = current_arg + 7;
                 } else if (strcmp(current_arg, "--file") == 0 && argi < argc - 1) { // Pattern: --file **
