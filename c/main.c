@@ -784,6 +784,11 @@ char *str_replace_all(const char *source, const char *old, const char *new) {
 // Execute code blocks for a given node
 int exec_node(MD_NODE *node, char **args, int num_args) {
     int exit_code;
+    if (!node->code_block) {
+        log_printf("no code blocks under this heading\n");
+        fprintf(stderr, "no code blocks under this heading\n");
+        return EXIT_FAILURE;
+    }
     log_printf("Executing node: %s\n", node->text);
 
     log_printf("Setting up environment variables\n");
