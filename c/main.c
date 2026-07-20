@@ -899,7 +899,7 @@ void show_help() {
     printf("Usage: %s [OPTIONS] [HEADING] [ARGS...]\n"
            "Options:\n"
            "  -h, --help              Print this help message\n"
-           "  -c, --code              Print node code block\n"
+           "  -c, --code [HEADING]    Print node code block\n"
            "  -1 [HEADING]            List one command per line\n"
            "  -t, --tree [HEADING]    List one command per line\n"
            "  -f, --file [FILE]       Specify the file to parse\n"
