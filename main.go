@@ -578,8 +578,8 @@ ParseArg:
 		}
 	}
 
+	os.Setenv("CR", os.Args[0])
 	os.Setenv("CR_FILE", config.filePath)
-	os.Setenv("CR_EXE", os.Args[0])
 
 	parseCustomExecutors()
 

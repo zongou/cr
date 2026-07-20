@@ -65,7 +65,7 @@ export MD_ZIG="sh,-c,printf '%s' '{CODE}'>/tmp/a.zig && zig run -lc /tmp/a.zig"
 Print built-in env.
 
 ```sh
-echo CR_EXE=${CR_EXE}
+echo CR_EXE=${CR}
 echo CR_FILE=${CR_FILE}
 ```
 
@@ -113,13 +113,13 @@ int main() {
 Demonstrate these features.
 
 ```sh
-${CR_EXE} env
-${CR_EXE} arguments foo bar
-echo Hello | ${CR_EXE} pipe
-${CR_EXE} exitStatus || echo "Recieved exit status $?"
+${CR} env
+${CR} arguments foo bar
+echo Hello | ${CR} pipe
+${CR} exitStatus || echo "Recieved exit status $?"
 export TMPDIR=${TMPDIR-/tmp}
 export MD_C="sh,-c,printf '%s' '{CODE}'>${TMPDIR}/a.c && cc ${TMPDIR}/a.c -o $TMPDIR/a && $TMPDIR/a"
-${CR_EXE} c_hello
+${CR} c_hello
 ```
 
 ## Dev
@@ -147,7 +147,7 @@ zig run -lc c/main.c -- "$@"
 Choose and build
 
 ```sh
-${CR_EXE} $(${CR_EXE} -1 build|gum choose)
+${CR} $(${CR} -1 build|gum choose)
 ```
 
 #### Build:go
@@ -202,10 +202,10 @@ fi
 Some tests.
 
 ```sh
-${CR_EXE}
-${CR_EXE} -f c/main.c || true
-${CR_EXE} -f test/test.md || true
-${CR_EXE} -f LICENSE || true
+${CR}
+${CR} -f c/main.c || true
+${CR} -f test/test.md || true
+${CR} -f LICENSE || true
 ```
 
 #### Stat
@@ -213,9 +213,9 @@ ${CR_EXE} -f LICENSE || true
 Print status of program.
 
 ```sh
-du -ahd0 ${CR_EXE}
-file ${CR_EXE}
-llvm-objdump -p ${CR_EXE} | grep LOAD
+du -ahd0 ${CR}
+file ${CR}
+llvm-objdump -p ${CR} | grep LOAD
 ```
 
 #### Benchmark
@@ -223,7 +223,7 @@ llvm-objdump -p ${CR_EXE} | grep LOAD
 Some benchmarks.
 
 ```sh
-hyperfine "${CR_EXE} env" "$@"
+hyperfine "${CR} env" "$@"
 ```
 
 ---

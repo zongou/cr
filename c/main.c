@@ -1027,10 +1027,10 @@ int main(int argc, char **argv) {
         fprintf(stderr, "No markdown file found\n");
         return EXIT_FAILURE;
     }
-
+    
+    setenv("CR", argv[0], 1);
     setenv("CR_FILE", config.file_path, 1);
     log_printf("Using doc: %s\n", config.file_path);
-    setenv("CR_EXE", argv[0], 1);
     parse_custom_executors();
 
     MD_NODE *doc_node = parse_file(config.file_path);
