@@ -22,6 +22,7 @@ struct config {
     int help;
     int code;
     int one;
+    int tree;
 
     // Options
     char *file_path;
@@ -721,6 +722,14 @@ void node_to_tree_with_desc(MD_NODE *node, Tree *parent, int max_branch_width) {
     }
 }
 
+void print_node_tree_with_desc(MD_NODE *node) {
+    int   max_branch_width = get_max_branch_width(node);
+    Tree *docTree          = new_tree(node->text);
+    node_to_tree_with_desc(node, docTree, max_branch_width);
+    char *tree_str = print_tree(docTree);
+    printf("%s", tree_str);
+}
+
 void print_one(MD_NODE *node) {
     for (MD_NODE *current_node = node->child; current_node; current_node = current_node->next) {
         if (current_node->code_block && get_executor(current_node->code_block->info)) {
@@ -920,6 +929,9 @@ int main(int argc, char **argv) {
                         case '1':
                             config.one = 1;
                             break;
+                        case 't':
+                            config.tree = 1;
+                            break;
                         case 'f':                                        // Pattern: -f**, -f **
                             if (short_opt_index < current_arg_len - 1) { // Not the last char
                                 config.file_path = current_arg + short_opt_index + 1;
@@ -1053,6 +1065,8 @@ int main(int argc, char **argv) {
                 }
             } else if (config.one) {
                 print_one(foundNode);
+            } else if (config.tree) {
+                print_node_tree_with_desc(foundNode);
             } else {
                 return exec_node(foundNode, cmd_args, num_args);
             }
@@ -1065,7 +1079,9 @@ int main(int argc, char **argv) {
         if (config.one) {
             print_one(doc_node);
         } else {
-            show_hint(doc_node);
+            for (MD_NODE *current = doc_node; current; current = current->next) {
+                print_node_tree_with_desc(current);
+            }
         }
     }
 

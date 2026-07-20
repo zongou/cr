@@ -23,6 +23,7 @@ var config = struct {
 	help bool
 	code bool
 	one  bool
+	tree bool
 	// version  string
 
 	// Options
@@ -464,12 +465,6 @@ func execNode(node *MDNode, originArgs []string) int {
 	return exitSuccess
 }
 
-func showHint(docNode *MDNode) {
-	for currentNode := docNode; currentNode != nil; currentNode = currentNode.Next {
-		fmt.Print(nodeToTreeWithDesc(currentNode).String())
-	}
-}
-
 func showHelp() {
 	fmt.Printf(`Usage: %s [OPTIONS] [HEADING] [ARGS...]
 Options:
@@ -497,6 +492,8 @@ ParseArg:
 			config.code = true
 		case "-1":
 			config.one = true
+		case "--tree", "-t":
+			config.tree = true
 		case "--file", "-f":
 			if argsCount > argi+1 && len(os.Args[argi+1]) > 0 {
 				config.filePath = os.Args[argi+1]
@@ -613,6 +610,8 @@ ParseArg:
 				}
 			} else if config.one {
 				printOne(foundNode)
+			} else if config.tree {
+				fmt.Print(nodeToTreeWithDesc(foundNode).String())
 			} else {
 				// Copy exit status
 				exitStatus := execNode(foundNode, args)
@@ -627,7 +626,9 @@ ParseArg:
 		if config.one {
 			printOne(docNode)
 		} else {
-			showHint(docNode)
+			for currentNode := docNode; currentNode != nil; currentNode = currentNode.Next {
+				fmt.Print(nodeToTreeWithDesc(currentNode).String())
+			}
 		}
 	}
 }
