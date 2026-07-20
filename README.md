@@ -65,7 +65,7 @@ export MD_ZIG="sh,-c,printf '%s' '{CODE}'>/tmp/a.zig && zig run -lc /tmp/a.zig"
 Print built-in env.
 
 ```sh
-echo CR_EXE=${CR}
+echo CR=${CR}
 echo CR_FILE=${CR_FILE}
 ```
 
