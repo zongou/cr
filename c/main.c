@@ -47,7 +47,7 @@ char *strlower(char *str) {
 
 // Language configuration structure
 struct Executor {
-    const char  *name;
+    const char  *lang;
     const char **prefix_args;
     size_t       prefix_args_count;
 };
@@ -179,13 +179,13 @@ static void parse_custom_executors(void) {
             return;
         }
 
-        executor->name              = strdup(lang);
+        executor->lang              = strdup(lang);
         executor->prefix_args       = args;
         executor->prefix_args_count = arg_count;
 
         CustomExecutor *new_custom_executor = malloc(sizeof(*env_entry));
         if (!new_custom_executor) {
-            free((void *)executor->name);
+            free((void *)executor->lang);
             for (size_t i = 0; i < idx; i++) {
                 free((char *)args[i]);
             }
@@ -206,13 +206,13 @@ static void parse_custom_executors(void) {
 
 const struct Executor *get_executor(const char *lang) {
     for (CustomExecutor *e = custom_executors; e; e = e->next) {
-        if (strcasecmp(e->executor->name, lang) == 0) {
+        if (strcasecmp(e->executor->lang, lang) == 0) {
             return e->executor;
         }
     }
 
     for (size_t i = 0; i < sizeof(executors) / sizeof(executors[0]); i++) {
-        if (strcasecmp(executors[i].name, lang) == 0) {
+        if (strcasecmp(executors[i].lang, lang) == 0) {
             return &executors[i];
         }
     }
@@ -808,7 +808,7 @@ int exec_node(MD_NODE *node, char **args, int num_args) {
             if (executor) {
                 log_printf("Executing code block: \n```%s\n%s```\n", block->info,
                            block->code);
-                log_printf("Using language profile: %s\n", executor->name);
+                log_printf("Using language profile: %s\n", executor->lang);
 
                 // Fork and execute
                 pid_t pid = fork();
