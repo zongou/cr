@@ -144,6 +144,12 @@ zig run -lc c/main.c -- "$@"
 
 ### Build
 
+Choose and build
+
+```sh
+${CR_EXE} $(${CR_EXE} -1 build|gum choose)
+```
+
 #### Build:go
 
 Build Go version for debug.
