@@ -591,7 +591,7 @@ func NodeToTree(node *MDNode) treeprint.Tree {
 	var walk func(*MDNode, *treeprint.Tree)
 	walk = func(node *MDNode, parent *treeprint.Tree) {
 		for currentNode := node.Child; currentNode != nil; currentNode = currentNode.Next {
-			if currentNode.CodeBlock != nil && mergedExecutors[string(currentNode.CodeBlock.Detail.Lang.Text)] != nil || currentNode.Child != nil {
+			if currentNode.CodeBlock != nil && mergedExecutors[string(currentNode.CodeBlock.Detail.Info.Text)] != nil || currentNode.Child != nil {
 				currentTree := (*parent).AddBranch(strings.ToLower(currentNode.Text))
 				walk(currentNode, &currentTree)
 			}
@@ -611,7 +611,7 @@ func NodeToTreeWithDesc(node *MDNode) treeprint.Tree {
 	var getMaxBrachRuneLen func(*MDNode)
 	getMaxBrachRuneLen = func(node *MDNode) {
 		for currentNode := node.Child; currentNode != nil; currentNode = currentNode.Next {
-			if currentNode.CodeBlock != nil && mergedExecutors[string(currentNode.CodeBlock.Detail.Lang.Text)] != nil || currentNode.Child != nil {
+			if currentNode.CodeBlock != nil && mergedExecutors[string(currentNode.CodeBlock.Detail.Info.Text)] != nil || currentNode.Child != nil {
 				branchRuneLen := len([]rune(currentNode.Text)) + (currentNode.HeadingDetail.Level-1)*branchSymbolLen
 				if branchRuneLen > maxLineRuneLen {
 					maxLineRuneLen = branchRuneLen
@@ -625,7 +625,7 @@ func NodeToTreeWithDesc(node *MDNode) treeprint.Tree {
 	var walk func(*MDNode, *treeprint.Tree)
 	walk = func(node *MDNode, parent *treeprint.Tree) {
 		for currentNode := node.Child; currentNode != nil; currentNode = currentNode.Next {
-			if currentNode.CodeBlock != nil && mergedExecutors[string(currentNode.CodeBlock.Detail.Lang.Text)] != nil || currentNode.Child != nil {
+			if currentNode.CodeBlock != nil && mergedExecutors[string(currentNode.CodeBlock.Detail.Info.Text)] != nil || currentNode.Child != nil {
 				branchVal := strings.ToLower(currentNode.Text) + " " + strings.Repeat(" ", maxLineRuneLen-(currentNode.HeadingDetail.Level-1)*branchSymbolLen-len([]rune(currentNode.Text))) + " " + currentNode.Desc
 				currentTree := (*parent).AddBranch(branchVal)
 				walk(currentNode, &currentTree)
