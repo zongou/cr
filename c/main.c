@@ -21,6 +21,7 @@ struct config {
     // Flags
     int help;
     int code;
+    int one;
 
     // Options
     char *file_path;
@@ -709,13 +710,13 @@ MD_NODE *find_node(MD_NODE *root, char *heading) {
 int get_max_branch_width(MD_NODE *node) {
     int max = 0;
 
-    for (MD_NODE *current = node->child; current; current = current->next) {
-        if (current->code_block && get_executor(current->code_block->info) || current->child) {
-            int w1 = (current->level - 1) * 4 + string_width(current->text);
+    for (MD_NODE *current_node = node->child; current_node; current_node = current_node->next) {
+        if (current_node->code_block && get_executor(current_node->code_block->info) || current_node->child) {
+            int w1 = (current_node->level - 1) * 4 + string_width(current_node->text);
             if (w1 > max) {
                 max = w1;
             }
-            int w2 = get_max_branch_width(current);
+            int w2 = get_max_branch_width(current_node);
             if (w2 > max) {
                 max = w2;
             }
@@ -725,10 +726,10 @@ int get_max_branch_width(MD_NODE *node) {
 }
 
 void node_to_tree_with_desc(MD_NODE *node, Tree *parent, int max_branch_width) {
-    for (MD_NODE *current = node->child; current; current = current->next) {
-        if (current->code_block && get_executor(current->code_block->info) || current->child) {
+    for (MD_NODE *current_node = node->child; current_node; current_node = current_node->next) {
+        if (current_node->code_block && get_executor(current_node->code_block->info) || current_node->child) {
             // Repeated seperators
-            int   seps_count = max_branch_width - (current->level - 1) * 4 - string_width(current->text);
+            int   seps_count = max_branch_width - (current_node->level - 1) * 4 - string_width(current_node->text);
             char *seperators = malloc(seps_count + 1);
             if (!seperators) {
                 error("Memory allocation failed\n");
@@ -738,9 +739,20 @@ void node_to_tree_with_desc(MD_NODE *node, Tree *parent, int max_branch_width) {
             seperators[seps_count] = '\0';
 
             char *branch_val = malloc(1024);
-            sprintf(branch_val, "%s %s %s", strlower(current->text), seperators, current->description ? current->description : "");
+            sprintf(branch_val, "%s %s %s", strlower(current_node->text), seperators, current_node->description ? current_node->description : "");
             Tree *current_tree = add_node(parent, branch_val);
-            node_to_tree_with_desc(current, current_tree, max_branch_width);
+            node_to_tree_with_desc(current_node, current_tree, max_branch_width);
+        }
+    }
+}
+
+void print_one(MD_NODE *node) {
+    for (MD_NODE *current_node = node; current_node; current_node = current_node->next) {
+        if (current_node->code_block && get_executor(current_node->code_block->info)) {
+            printf("%s\n", current_node->text);
+            print_one(current_node->child);
+        } else if (current_node->child) {
+            print_one(current_node->child);
         }
     }
 }
@@ -897,6 +909,7 @@ void show_help() {
            "Options\n"
            "  -h, --help              Print this help message\n"
            "  -c, --code              Print node code block\n"
+           "  -1                      List one command per line\n"
            "  -f, --file [FILE]       Specify the file to parse\n"
            "  -l, --log-file [FILE]   Path to log file for diagnostics\n",
            config.program);
@@ -926,6 +939,9 @@ int main(int argc, char **argv) {
                             break;
                         case 'c':
                             config.code = 1;
+                            break;
+                        case '1':
+                            config.one = 1;
                             break;
                         case 'f':                                        // Pattern: -f**, -f **
                             if (short_opt_index < current_arg_len - 1) { // Not the last char
@@ -1067,7 +1083,11 @@ int main(int argc, char **argv) {
         }
     } else {
         log_printf("No command specified, printing hints.\n");
-        show_hint(doc_node);
+        if (config.one) {
+            print_one(doc_node);
+        } else {
+            show_hint(doc_node);
+        }
     }
 
     return 0;

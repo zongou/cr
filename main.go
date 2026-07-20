@@ -475,6 +475,7 @@ func showHelp() {
 Options:
   -h, --help              Print this help message
   -c, --code              Print node code block
+  -1                      List one command per line
   -f, --file [FILE]       Path to MarkDown file
   -l, --log-file [FILE]   Path to log file for diagnostics
 `, config.program)
