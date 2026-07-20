@@ -316,7 +316,7 @@ func (r *MDNodeParser) Text(t ast.TextType, text []byte) error {
 	return nil
 }
 
-func ParseFile(filePath string) (*MDNode, error) {
+func parseFile(filePath string) (*MDNode, error) {
 	src, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
@@ -331,7 +331,7 @@ func ParseFile(filePath string) (*MDNode, error) {
 	return p.root, nil
 }
 
-func FindNode(node *MDNode, heading string) *MDNode {
+func findNode(node *MDNode, heading string) *MDNode {
 	if node == nil {
 		return nil
 	}
@@ -341,16 +341,16 @@ func FindNode(node *MDNode, heading string) *MDNode {
 	}
 
 	// Search in child nodes
-	found := FindNode(node.Child, heading)
+	found := findNode(node.Child, heading)
 	if found != nil {
 		return found
 	}
 
 	// Search in next sibling nodes
-	return FindNode(node.Next, heading)
+	return findNode(node.Next, heading)
 }
 
-func NodeToTree(node *MDNode) treeprint.Tree {
+func nodeToTree(node *MDNode) treeprint.Tree {
 	var walk func(*MDNode, *treeprint.Tree)
 	walk = func(node *MDNode, parent *treeprint.Tree) {
 		for currentNode := node.Child; currentNode != nil; currentNode = currentNode.Next {
@@ -366,7 +366,7 @@ func NodeToTree(node *MDNode) treeprint.Tree {
 	return root
 }
 
-func NodeToTreeWithDesc(node *MDNode) treeprint.Tree {
+func nodeToTreeWithDesc(node *MDNode) treeprint.Tree {
 	// Get max branch length
 	maxBranchWidth := 0
 	const branchSymbolWidth = 4
@@ -401,10 +401,10 @@ func NodeToTreeWithDesc(node *MDNode) treeprint.Tree {
 	return root
 }
 
-func PrintOne(node *MDNode) {
+func printOne(node *MDNode) {
 	for currentNode := node; currentNode != nil; currentNode = currentNode.Next {
 		fmt.Printf("%s\n", currentNode.Text)
-		PrintOne(currentNode.Child)
+		printOne(currentNode.Child)
 	}
 }
 
@@ -478,7 +478,7 @@ func execNode(node *MDNode, originArgs []string) int {
 
 func showHint(docNode *MDNode) {
 	for currentNode := docNode; currentNode != nil; currentNode = currentNode.Next {
-		fmt.Print(NodeToTreeWithDesc(currentNode).String())
+		fmt.Print(nodeToTreeWithDesc(currentNode).String())
 	}
 }
 
@@ -597,7 +597,7 @@ ParseArg:
 	parseCustomExecutors()
 
 	// Parse MarkDown document
-	docNode, err := ParseFile(config.filePath)
+	docNode, err := parseFile(config.filePath)
 	if err != nil {
 		log.Printf("parsing file: %v\n", err)
 		fmt.Fprintf(os.Stderr, "parsing file: %v\n", err)
@@ -613,7 +613,7 @@ ParseArg:
 		args := os.Args[argi+1:]
 		log.Printf("Matching node with '%s'\n", cmd)
 
-		foundNode := FindNode(docNode, cmd)
+		foundNode := findNode(docNode, cmd)
 		if foundNode != nil {
 			log.Printf("Found node: %s (Level %d)\n", foundNode.Text, foundNode.HeadingDetail.Level)
 			log.Printf("args: %v\n", args)
@@ -634,7 +634,7 @@ ParseArg:
 		}
 	} else {
 		if config.one {
-			PrintOne(docNode)
+			printOne(docNode)
 		} else {
 			showHint(docNode)
 		}
