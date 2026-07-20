@@ -469,7 +469,7 @@ func showHelp() {
 	fmt.Printf(`Usage: %s [OPTIONS] [HEADING] [ARGS...]
 Options:
   -h, --help              Print this help message
-  -c, --code [HEADING]    Print node code block
+  -c, --code [HEADING]    Print code block
   -1 [HEADING]            List one command per line
   -t, --tree [HEADING]    Print tree with description
   -f, --file [FILE]       Path to MarkDown file
