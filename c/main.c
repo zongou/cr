@@ -892,7 +892,7 @@ void show_hint(MD_NODE *doc_node) {
 
 void show_help() {
     printf("Usage: %s [OPTIONS] [HEADING] [ARGS...]\n"
-           "Options\n"
+           "Options:\n"
            "  -h, --help              Print this help message\n"
            "  -c, --code              Print node code block\n"
            "  -1 [HEADING]            List one command per line\n"
