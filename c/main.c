@@ -895,7 +895,8 @@ void show_help() {
            "Options\n"
            "  -h, --help              Print this help message\n"
            "  -c, --code              Print node code block\n"
-           "  -1                      List one command per line\n"
+           "  -1 [HEADING]            List one command per line\n"
+           "  -t [HEADING]            List one command per line\n"
            "  -f, --file [FILE]       Specify the file to parse\n"
            "  -l, --log-file [FILE]   Path to log file for diagnostics\n",
            config.program);
