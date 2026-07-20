@@ -724,7 +724,9 @@ void node_to_tree_with_desc(MD_NODE *node, Tree *parent, int max_branch_width) {
 void print_one(MD_NODE *node) {
     for (MD_NODE *current_node = node; current_node; current_node = current_node->next) {
         if (current_node->code_block && get_executor(current_node->code_block->info)) {
-            printf("%s\n", current_node->text);
+            char *heading_text_lowered = strdup(current_node->text);
+            tolower_in_place(heading_text_lowered);
+            printf("%s\n", heading_text_lowered);
             print_one(current_node->child);
         } else if (current_node->child) {
             print_one(current_node->child);

@@ -157,7 +157,7 @@ target=$(uname -m)
 zig cc -target ${target}-linux-musl -o cr c/main.c "$@"
 ```
 
-### Release:go
+### Build:Release:go
 
 Build Go version for Release.
 
@@ -165,7 +165,7 @@ Build Go version for Release.
 go build -ldflags="-w -s" . "$@"
 ```
 
-### Release:c
+### Build:Release:c
 
 Build C version for Release.
 
