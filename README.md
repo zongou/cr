@@ -124,7 +124,7 @@ ${CR_EXE} c_hello
 
 ## Development
 
-### Run
+### Run:go
 
 Run Go version.
 
@@ -132,7 +132,7 @@ Run Go version.
 go run . "$@"
 ```
 
-### Run_C
+### Run:c
 
 Run C version.
 
@@ -140,7 +140,7 @@ Run C version.
 zig run -lc c/main.c -- "$@"
 ```
 
-### Build
+### Build:go
 
 Build Go version for debug.
 
@@ -148,7 +148,7 @@ Build Go version for debug.
 go build "$@" .
 ```
 
-### Build_C
+### Build:c
 
 Build C version for debug.
 
@@ -157,7 +157,7 @@ target=$(uname -m)
 zig cc -target ${target}-linux-musl -o cr c/main.c "$@"
 ```
 
-### Release
+### Release:go
 
 Build Go version for Release.
 
@@ -165,7 +165,7 @@ Build Go version for Release.
 go build -ldflags="-w -s" . "$@"
 ```
 
-### Release_C
+### Release:c
 
 Build C version for Release.
 
