@@ -224,7 +224,7 @@ const struct Executor *get_executor(const char *lang) {
 typedef struct CODE_BLOCK CODE_BLOCK;
 struct CODE_BLOCK {
     char       *info;
-    char       *content;
+    char       *code;
     CODE_BLOCK *next;
 };
 
@@ -243,7 +243,7 @@ struct MD_NODE {
 CODE_BLOCK *new_code_block(char *info) {
     CODE_BLOCK *block = malloc(sizeof(CODE_BLOCK));
     block->info       = info;
-    block->content    = NULL;
+    block->code       = NULL;
     block->next       = NULL;
     return block;
 }
@@ -488,7 +488,7 @@ static int leave_block_callback(MD_BLOCKTYPE type, void *detail,
                     // printf("Node: %s, content: %s\n", data->last->text, data->content);
                     CODE_BLOCK *new_code = new_code_block(info);
                     new_code->info       = info;
-                    new_code->content    = strdup(data->content);
+                    new_code->code       = strdup(data->content);
 
                     CODE_BLOCK *last = data->last->code_block;
                     if (!last) {
@@ -801,13 +801,13 @@ int exec_node(MD_NODE *node, char **args, int num_args) {
 
     CODE_BLOCK *block = node->code_block;
     while (block) {
-        if (block->info && block->content) {
+        if (block->info && block->code) {
             const char            *lang     = block->info;
             const struct Executor *executor = get_executor(lang);
 
             if (executor) {
                 log_printf("Executing code block: \n```%s\n%s```\n", block->info,
-                           block->content);
+                           block->code);
                 log_printf("Using language profile: %s\n", executor->name);
 
                 // Fork and execute
@@ -837,7 +837,7 @@ int exec_node(MD_NODE *node, char **args, int num_args) {
                         if (strstr(executor->prefix_args[i], "{LANG}")) {
                             exec_args[arg_idx] = str_replace_all(executor->prefix_args[i], "{LANG}", block->info);
                         } else if (strstr(executor->prefix_args[i], "{CODE}")) {
-                            exec_args[arg_idx] = str_replace_all(executor->prefix_args[i], "{CODE}", block->content);
+                            exec_args[arg_idx] = str_replace_all(executor->prefix_args[i], "{CODE}", block->code);
                         } else {
                             exec_args[arg_idx] = (char *)executor->prefix_args[i];
                         }
@@ -1054,7 +1054,7 @@ int main(int argc, char **argv) {
                 if (config.code) {
                     CODE_BLOCK *code_block = foundNode->code_block;
                     while (code_block) {
-                        printf("%s", code_block->content);
+                        printf("%s", code_block->code);
                         code_block = code_block->next;
                     }
                 }
