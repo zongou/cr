@@ -122,7 +122,7 @@ export MD_C="sh,-c,printf '%s' '{CODE}'>${TMPDIR}/a.c && cc ${TMPDIR}/a.c -o $TM
 ${CR_EXE} c_hello
 ```
 
-## Development
+## Dev
 
 ### Run
 
