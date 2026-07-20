@@ -124,7 +124,9 @@ ${CR_EXE} c_hello
 
 ## Development
 
-### Run:go
+### Run
+
+#### Run:go
 
 Run Go version.
 
@@ -132,7 +134,7 @@ Run Go version.
 go run . "$@"
 ```
 
-### Run:c
+#### Run:c
 
 Run C version.
 
@@ -140,7 +142,9 @@ Run C version.
 zig run -lc c/main.c -- "$@"
 ```
 
-### Build:go
+### Build
+
+#### Build:go
 
 Build Go version for debug.
 
@@ -148,7 +152,7 @@ Build Go version for debug.
 go build "$@" .
 ```
 
-### Build:c
+#### Build:c
 
 Build C version for debug.
 
@@ -157,7 +161,7 @@ target=$(uname -m)
 zig cc -target ${target}-linux-musl -o cr c/main.c "$@"
 ```
 
-### Build:Release:go
+#### Build:Release:go
 
 Build Go version for Release.
 
@@ -165,7 +169,7 @@ Build Go version for Release.
 go build -ldflags="-w -s" . "$@"
 ```
 
-### Build:Release:c
+#### Build:Release:c
 
 Build C version for Release.
 
@@ -198,7 +202,7 @@ ${CR_EXE} -f test/test.md || true
 ${CR_EXE} -f LICENSE || true
 ```
 
-### Stat
+#### Stat
 
 Print status of program.
 
@@ -208,7 +212,7 @@ file ${CR_EXE}
 llvm-objdump -p ${CR_EXE} | grep LOAD
 ```
 
-### Benchmark
+#### Benchmark
 
 Some benchmarks.
 
