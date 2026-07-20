@@ -712,9 +712,9 @@ void node_to_tree_with_desc(MD_NODE *node, Tree *parent, int max_branch_width) {
             seperators[seps_count] = '\0';
 
             char *branch_val           = malloc(1024);
-            char *lowered_heading_text = strdup(current_node->text);
-            tolower_in_place(lowered_heading_text);
-            sprintf(branch_val, "%s %s %s", lowered_heading_text, seperators, current_node->description ? current_node->description : "");
+            char *heading_text_lowered = strdup(current_node->text);
+            tolower_in_place(heading_text_lowered);
+            sprintf(branch_val, "%s %s %s", heading_text_lowered, seperators, current_node->description ? current_node->description : "");
             Tree *current_tree = add_node(parent, branch_val);
             node_to_tree_with_desc(current_node, current_tree, max_branch_width);
         }
