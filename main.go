@@ -386,12 +386,12 @@ func nodeToTreeWithDesc(node *MDNode) treeprint.Tree {
 }
 
 func printOne(node *MDNode) {
-	for currentNode := node; currentNode != nil; currentNode = currentNode.Next {
-		if currentNode.CodeBlock != nil && getExecutor(string(currentNode.CodeBlock.Detail.Lang.Text)) != nil {
-			fmt.Println(strings.ToLower(currentNode.Text))
-			printOne(currentNode.Child)
+	for currentNode := node.Child; currentNode != nil; currentNode = currentNode.Next {
+		if currentNode.CodeBlock != nil && getExecutor(string(currentNode.CodeBlock.Detail.Info.Text)) != nil {
+			fmt.Println(currentNode.Text)
+			printOne(currentNode)
 		} else if currentNode.Child != nil {
-			printOne(currentNode.Child)
+			printOne(currentNode)
 		}
 	}
 }
@@ -494,9 +494,9 @@ ParseArg:
 		case "--help", "-h":
 			config.help = true
 		case "--code", "-c":
+			config.code = true
 		case "-1":
 			config.one = true
-			config.code = true
 		case "--file", "-f":
 			if argsCount > argi+1 && len(os.Args[argi+1]) > 0 {
 				config.filePath = os.Args[argi+1]
@@ -611,6 +611,8 @@ ParseArg:
 				for cb := foundNode.CodeBlock; cb != nil; cb = cb.Next {
 					fmt.Printf("%s", cb.Code)
 				}
+			} else if config.one {
+				printOne(foundNode)
 			} else {
 				// Copy exit status
 				exitStatus := execNode(foundNode, args)

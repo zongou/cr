@@ -722,14 +722,14 @@ void node_to_tree_with_desc(MD_NODE *node, Tree *parent, int max_branch_width) {
 }
 
 void print_one(MD_NODE *node) {
-    for (MD_NODE *current_node = node; current_node; current_node = current_node->next) {
+    for (MD_NODE *current_node = node->child; current_node; current_node = current_node->next) {
         if (current_node->code_block && get_executor(current_node->code_block->info)) {
             char *heading_text_lowered = strdup(current_node->text);
             tolower_in_place(heading_text_lowered);
             printf("%s\n", heading_text_lowered);
-            print_one(current_node->child);
+            print_one(current_node);
         } else if (current_node->child) {
-            print_one(current_node->child);
+            print_one(current_node);
         }
     }
 }
@@ -988,8 +988,8 @@ int main(int argc, char **argv) {
         argi++;
     }
 
-    log_printf("flags: help=%d, code=%d, file_path=%s\n",
-               config.help, config.code, config.file_path);
+    log_printf("flags: help=%d, code=%d, one=%d, file_path=%s\n",
+               config.help, config.code, config.one, config.file_path);
 
     if (config.help) {
         show_help();
@@ -1040,8 +1040,8 @@ int main(int argc, char **argv) {
 
         if (foundNode) {
             log_printf("Found node: %s\n", foundNode->text);
-            foundNode->next  = NULL; // Do not print next node
-            foundNode->child = NULL; // Do not print child node
+            // foundNode->next  = NULL; // Do not print next node
+            // foundNode->child = NULL; // Do not print child node
 
             if (config.code) {
                 if (config.code) {
@@ -1051,6 +1051,8 @@ int main(int argc, char **argv) {
                         code_block = code_block->next;
                     }
                 }
+            } else if (config.one) {
+                print_one(foundNode);
             } else {
                 return exec_node(foundNode, cmd_args, num_args);
             }
