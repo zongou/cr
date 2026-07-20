@@ -349,22 +349,6 @@ func findNode(node *MDNode, heading string) *MDNode {
 	return findNode(node.Next, heading)
 }
 
-func nodeToTree(node *MDNode) treeprint.Tree {
-	var walk func(*MDNode, *treeprint.Tree)
-	walk = func(node *MDNode, parent *treeprint.Tree) {
-		for currentNode := node.Child; currentNode != nil; currentNode = currentNode.Next {
-			if currentNode.CodeBlock != nil && getExecutor(string(currentNode.CodeBlock.Detail.Info.Text)) != nil || currentNode.Child != nil {
-				currentTree := (*parent).AddBranch(strings.ToLower(currentNode.Text))
-				walk(currentNode, &currentTree)
-			}
-		}
-	}
-
-	root := treeprint.NewWithRoot(node.Text)
-	walk(node, &root)
-	return root
-}
-
 func nodeToTreeWithDesc(node *MDNode) treeprint.Tree {
 	// Get max branch length
 	maxBranchWidth := 0
