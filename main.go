@@ -22,6 +22,7 @@ var config = struct {
 	// Flags
 	help bool
 	code bool
+	one  bool
 	// version  string
 
 	// Options
@@ -400,6 +401,13 @@ func NodeToTreeWithDesc(node *MDNode) treeprint.Tree {
 	return root
 }
 
+func PrintOne(node *MDNode) {
+	for currentNode := node; currentNode != nil; currentNode = currentNode.Next {
+		fmt.Printf("%s\n", currentNode.Text)
+		PrintOne(currentNode.Child)
+	}
+}
+
 func execNode(node *MDNode, originArgs []string) int {
 	if node.CodeBlock == nil {
 		log.Printf("no code blocks under this heading\n")
@@ -498,6 +506,8 @@ ParseArg:
 			config.help = true
 		case "--code", "-c":
 			config.code = true
+		case "-1":
+			config.one = true
 		case "--file", "-f":
 			if argsCount > argi+1 && len(os.Args[argi+1]) > 0 {
 				config.filePath = os.Args[argi+1]
@@ -623,6 +633,10 @@ ParseArg:
 			os.Exit(exitFailure)
 		}
 	} else {
-		showHint(docNode)
+		if config.one {
+			PrintOne(docNode)
+		} else {
+			showHint(docNode)
+		}
 	}
 }
