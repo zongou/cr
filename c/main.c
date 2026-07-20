@@ -28,6 +28,12 @@ struct config {
     char *log_file;
 } config;
 
+static void tolower_in_place(char *str) {
+    for (size_t i = 0; str[i]; i++) {
+        str[i] = (char)tolower((unsigned char)str[i]);
+    }
+}
+
 char *substr(char *str, int start, int length) {
     if (!str || start < 0 || length < 0 || start + length > strlen(str)) {
         return NULL;
@@ -36,14 +42,6 @@ char *substr(char *str, int start, int length) {
     memcpy(sub, str + start, length);
     sub[length] = '\0';
     return sub;
-}
-
-char *strlower(char *str) {
-    char *lower = strdup(str);
-    for (int i = 0; lower[i]; i++) {
-        lower[i] = tolower(lower[i]);
-    }
-    return lower;
 }
 
 // Language configuration structure
@@ -89,31 +87,6 @@ typedef struct custom_executor {
 } CustomExecutor;
 
 static CustomExecutor *custom_executors = NULL;
-
-static void tolower_in_place(char *str) {
-    for (size_t i = 0; str[i]; i++) {
-        str[i] = (char)tolower((unsigned char)str[i]);
-    }
-}
-
-static void toupper_in_place(char *str) {
-    for (size_t i = 0; str[i]; i++) {
-        str[i] = (char)toupper((unsigned char)str[i]);
-    }
-}
-
-static char *trim_whitespace(char *str) {
-    while (*str == ' ' || *str == '\t' || *str == '\r' || *str == '\n') {
-        str++;
-    }
-
-    size_t len = strlen(str);
-    while (len > 0 && (str[len - 1] == ' ' || str[len - 1] == '\t' || str[len - 1] == '\r' || str[len - 1] == '\n')) {
-        str[--len] = '\0';
-    }
-
-    return str;
-}
 
 static void parse_custom_executors(void) {
     extern char **environ;
@@ -738,8 +711,10 @@ void node_to_tree_with_desc(MD_NODE *node, Tree *parent, int max_branch_width) {
             memset(seperators, ' ', seps_count);
             seperators[seps_count] = '\0';
 
-            char *branch_val = malloc(1024);
-            sprintf(branch_val, "%s %s %s", strlower(current_node->text), seperators, current_node->description ? current_node->description : "");
+            char *branch_val           = malloc(1024);
+            char *lowered_heading_text = strdup(current_node->text);
+            tolower_in_place(lowered_heading_text);
+            sprintf(branch_val, "%s %s %s", lowered_heading_text, seperators, current_node->description ? current_node->description : "");
             Tree *current_tree = add_node(parent, branch_val);
             node_to_tree_with_desc(current_node, current_tree, max_branch_width);
         }
