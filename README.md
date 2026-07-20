@@ -77,9 +77,9 @@ Example to pass arguments.
 echo "Recieved arguments: $*"
 ```
 
-### ExitCode
+### ExitStatus
 
-Example with exit code.
+Example with exit status.
 
 ```sh
 exit_code=$(shuf -i 1-255 -n 1)
@@ -116,7 +116,7 @@ Demonstrate these features.
 ${CR_EXE} env
 ${CR_EXE} arguments foo bar
 echo Hello | ${CR_EXE} pipe
-${CR_EXE} exitcode || echo "Recieved exitcode $?"
+${CR_EXE} exitStatus || echo "Recieved exit status $?"
 export TMPDIR=${TMPDIR-/tmp}
 export MD_C="sh,-c,printf '%s' '{CODE}'>${TMPDIR}/a.c && cc ${TMPDIR}/a.c -o $TMPDIR/a && $TMPDIR/a"
 ${CR_EXE} c_hello
