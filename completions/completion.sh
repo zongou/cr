@@ -25,7 +25,7 @@
 
 _cr() {
     _log_write() {
-        printf "%s\n" "$*" >>/tmp/a.log
+        printf "%s\n" "$*" >>"${TMPDIR-/tmp}/a.log"
     }
 
     _log_write "---------------------------------------------"
