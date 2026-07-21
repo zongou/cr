@@ -42,17 +42,12 @@ _cr() {
         COMPREPLY=($(compgen -W "-h --help -f --file -c --code -1 -t --tree -l --log-file $(cr -1)" -- ${cur}))
     else
         local i=1
-        local fileOpt=""
-        local mdcmds
+        local fileOpt
+        local logFileOpt
+        local mdcmds=$(cr -1)
         local builtinOpts="-h --help -f --file -c --code -1 -t --tree -l --log-file"
         while test $i -le ${COMP_CWORD}; do
             _log_write arg[$i]=${COMP_WORDS[i]}
-
-            if test -f "${fileOpt}"; then
-                mdcmds=$(cr -1 -f ${fileOpt} 2>/dev/null)
-            else
-                mdcmds=$(cr -1)
-            fi
 
             case "${COMP_WORDS[i]}" in
             -h | --help)
@@ -72,13 +67,21 @@ _cr() {
                 ;;
             -f | --file)
                 COMPREPLY=($(compgen -f -- "${cur}"))
-                fileOpt=${COMP_WORDS[$((i + 1))]}
+                fileOpt=$(eval echo "${COMP_WORDS[$((i + 1))]}")
+                _log_write fileOpt=${fileOpt}
+
+                if test -f "${fileOpt}"; then
+                    mdcmds=$(cr -1 -f "${fileOpt}")
+                fi
+
                 i=$((i + 1))
-                _log_write file_opt=${fileOpt}
                 ;;
             -l | --log-file)
-                _log_write logfile_opt
                 COMPREPLY=($(compgen -f -- "${cur}"))
+                logFileOpt=$(eval echo "${COMP_WORDS[$((i + 1))]}")
+                _log_write logFileOpt=${logFileOpt}
+
+                i=$((i + 1))
                 ;;
             *)
                 _log_write "Unknown command '${COMP_WORDS[i]}'"
