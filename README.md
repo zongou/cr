@@ -148,7 +148,8 @@ zig run -target ${target} -lc c/main.c -- "$@"
 Choose and build
 
 ```sh
-${CR} $(${CR} -1 build|gum choose)
+opt=$(${CR} -1 build|gum choose)
+${CR} ${opt}
 ```
 
 #### Build:go
