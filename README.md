@@ -139,7 +139,8 @@ go run . "$@"
 Run C version.
 
 ```sh
-zig run -lc c/main.c -- "$@"
+target=$(uname -m)-linux-musl
+zig run -target ${target} -lc c/main.c -- "$@"
 ```
 
 ### Build
@@ -163,8 +164,8 @@ go build "$@" .
 Build C version for debug.
 
 ```sh
-target=$(uname -m)
-zig cc -target ${target}-linux-musl -o cr c/main.c "$@"
+target=$(uname -m)-linux-musl
+zig cc -target ${target} -o cr c/main.c "$@"
 ```
 
 #### Build:go:release
