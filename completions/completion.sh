@@ -33,19 +33,19 @@ _cr() {
     COMPREPLY=()                             # Reset the COMPREPLY array
     local cur=${COMP_WORDS[COMP_CWORD]}      # Current word
     local prev=${COMP_WORDS[COMP_CWORD - 1]} # Previous word
+    local builtinOpts="-h --help -f --file -c --code -1 -t --tree -l --log-file"
+    local mdcmds=$(cr -1)
 
     _log_write cur=$cur
     _log_write prev=$prev
 
     if test ${COMP_CWORD} -eq 1; then
         _log_write empty
-        COMPREPLY=($(compgen -W "-h --help -f --file -c --code -1 -t --tree -l --log-file $(cr -1)" -- ${cur}))
+        COMPREPLY=($(compgen -W "${builtinOpts} ${mdcmds}" -- ${cur}))
     else
         local i=1
         local fileOpt
         local logFileOpt
-        local mdcmds=$(cr -1)
-        local builtinOpts="-h --help -f --file -c --code -1 -t --tree -l --log-file"
         while test $i -le ${COMP_CWORD}; do
             _log_write arg[$i]=${COMP_WORDS[i]}
 
@@ -55,15 +55,15 @@ _cr() {
                 ;;
             -c | --code)
                 _log_write is_code
-                COMPREPLY=($(compgen -W $mdcmds -- "${cur}"))
+                COMPREPLY=($(compgen -W ${mdcmds} -- "${cur}"))
                 ;;
             -t | --tree)
                 _log_write is_tree
-                COMPREPLY=($(compgen -W $mdcmds -- "${cur}"))
+                COMPREPLY=($(compgen -W ${mdcmds} -- "${cur}"))
                 ;;
             -1)
                 _log_write is_one
-                COMPREPLY=($(compgen -W $mdcmds -- "${cur}"))
+                COMPREPLY=($(compgen -W ${mdcmds} -- "${cur}"))
                 ;;
             -f | --file)
                 COMPREPLY=($(compgen -f -- "${cur}"))
@@ -88,12 +88,12 @@ _cr() {
                 _log_write line=${COMP_LINE}
                 _log_write lastArg=$(echo ${COMP_LINE} | grep -o '[^ ]*$')
                 local lastArg=$(echo ${COMP_LINE} | grep -o '[^ ]*$')
-                _log_write reply=$(compgen -W "$mdcmds" -- ${lastArg} | grep -Eo '\w+\b$')
-                COMPREPLY=($(compgen -W "$mdcmds" -- ${lastArg} | grep -Eo '\w+\b$'))
+                _log_write reply=$(compgen -W "${mdcmds}" -- ${lastArg} | grep -Eo '\w+\b$')
+                COMPREPLY=($(compgen -W "${mdcmds}" -- ${lastArg} | grep -Eo '\w+\b$'))
                 ;;
             # *)
             #     _log_write "Unknown command '${COMP_WORDS[i]}'"
-            #     COMPREPLY=($(compgen -W "$builtinOpts $mdcmds" -- ${cur}))
+            #     COMPREPLY=($(compgen -W "$builtinOpts ${mdcmds}" -- ${cur}))
             #     ;;
             esac
 
