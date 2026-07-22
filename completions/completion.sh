@@ -55,15 +55,15 @@ _cr() {
                 ;;
             -c | --code)
                 _log_write is_code
-                COMPREPLY=($(compgen -W ${mdcmds} -- "${cur}"))
+                COMPREPLY=($(compgen -W "${mdcmds}" -- "${cur}"))
                 ;;
             -t | --tree)
                 _log_write is_tree
-                COMPREPLY=($(compgen -W ${mdcmds} -- "${cur}"))
+                COMPREPLY=($(compgen -W "${mdcmds}" -- "${cur}"))
                 ;;
             -1)
                 _log_write is_one
-                COMPREPLY=($(compgen -W ${mdcmds} -- "${cur}"))
+                COMPREPLY=($(compgen -W "${mdcmds}" -- "${cur}"))
                 ;;
             -f | --file)
                 COMPREPLY=($(compgen -f -- "${cur}"))
