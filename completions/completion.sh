@@ -86,7 +86,6 @@ _cr() {
                 i=$((i + 1))
                 ;;
             :)
-
                 local lastArg=$(echo ${COMP_LINE} | grep -o '[^ ]*$')
                 _log_write :lastArg=$lastArg
                 COMPREPLY=($(compgen -W "${mdcmds}" -- ${lastArg} | sed "s/${lastArg}//g"))
