@@ -35,12 +35,13 @@ _cr() {
     local prev=${COMP_WORDS[COMP_CWORD - 1]} # Previous word
     local builtinOpts="-h --help -f --file -c --code -1 -t --tree -l --log-file"
     local mdcmds=$(cr -1)
+    local mdheadings=$(cr -t | grep -Eo '(├──|└──).+  ' | cut -d ' ' -f2-)
 
     _log_write cur=$cur
     _log_write prev=$prev
 
     if test ${COMP_CWORD} -eq 1; then
-        _log_write empty
+        _log_write 0 args
         COMPREPLY=($(compgen -W "${builtinOpts} ${mdcmds}" -- ${cur}))
     else
         local i=1
@@ -59,7 +60,7 @@ _cr() {
                 ;;
             -t | --tree)
                 _log_write is_tree
-                COMPREPLY=($(compgen -W "${mdcmds}" -- "${cur}"))
+                COMPREPLY=($(compgen -W "${mdheadings}" -- "${cur}"))
                 ;;
             -1)
                 _log_write is_one
@@ -72,6 +73,7 @@ _cr() {
 
                 if test -f "${fileOpt}"; then
                     mdcmds=$(cr -1 -f "${fileOpt}")
+                    mdheadings=$(cr -t -t "${fileOpt}" | grep -Eo '(├──|└──).+  ' | cut -d ' ' -f2-)
                 fi
 
                 i=$((i + 1))
@@ -91,9 +93,9 @@ _cr() {
                 _log_write reply=$(compgen -W "${mdcmds}" -- ${lastArg} | grep -Eo '\w+\b$')
                 COMPREPLY=($(compgen -W "${mdcmds}" -- ${lastArg} | grep -Eo '\w+\b$'))
                 ;;
-            *)
-                _log_write "Unknown command '${COMP_WORDS[i]}'"
-                COMPREPLY=($(compgen -W "$builtinOpts ${mdcmds}" -- ${cur}))
+
+            * | '')
+                _log_write response previous reply
                 ;;
             esac
 
