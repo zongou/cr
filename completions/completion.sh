@@ -83,7 +83,7 @@ _cr() {
 
                 i=$((i + 1))
                 ;;
-            * | :)
+            :)
                 _log_write "cur=[${COMP_WORDS[i]}]"
                 _log_write line=${COMP_LINE}
                 _log_write lastArg=$(echo ${COMP_LINE} | grep -o '[^ ]*$')
@@ -91,10 +91,10 @@ _cr() {
                 _log_write reply=$(compgen -W "${mdcmds}" -- ${lastArg} | grep -Eo '\w+\b$')
                 COMPREPLY=($(compgen -W "${mdcmds}" -- ${lastArg} | grep -Eo '\w+\b$'))
                 ;;
-            # *)
-            #     _log_write "Unknown command '${COMP_WORDS[i]}'"
-            #     COMPREPLY=($(compgen -W "$builtinOpts ${mdcmds}" -- ${cur}))
-            #     ;;
+            *)
+                _log_write "Unknown command '${COMP_WORDS[i]}'"
+                COMPREPLY=($(compgen -W "$builtinOpts ${mdcmds}" -- ${cur}))
+                ;;
             esac
 
             i=$((i + 1))
