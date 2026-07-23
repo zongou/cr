@@ -47,6 +47,7 @@ _cr() {
         local i=1
         local fileOpt
         local logFileOpt
+        local skipFile=0
         while test $i -le ${COMP_CWORD}; do
             _log_write arg[$i]=${COMP_WORDS[i]}
 
@@ -69,13 +70,14 @@ _cr() {
             -f | --file)
                 COMPREPLY=($(compgen -f -- "${cur}"))
                 fileOpt=$(eval echo "${COMP_WORDS[$((i + 1))]}")
-                _log_write fileOpt=${fileOpt}
+                _log_write arg[$((i + 1))]=${fileOpt}
 
                 if test -f "${fileOpt}"; then
                     mdCmds=$(cr -1 -f "${fileOpt}")
                     mdHeadings=$(cr -t -f "${fileOpt}" | grep -Eo '(├──|└──).+  ' | cut -d ' ' -f2-)
                 fi
 
+                skipFile=1
                 i=$((i + 1))
                 ;;
             -l | --log-file)
@@ -83,30 +85,36 @@ _cr() {
                 logFileOpt=$(eval echo "${COMP_WORDS[$((i + 1))]}")
                 _log_write logFileOpt=${logFileOpt}
 
+                skipFile=1
                 i=$((i + 1))
                 ;;
-            :)
-                local lastArg=$(echo ${COMP_LINE} | grep -o '[^ ]*$')
-                _log_write :lastArg=$lastArg
-                COMPREPLY=($(compgen -W "${mdCmds}" -- ${lastArg} | sed "s/${lastArg}//g"))
-                _log_write :COMPREPLY=$COMPREPLY
-                ;;
-            '')
-                _log_write response previous reply
-                ;;
-
             *)
-                local lastArg=$(echo ${COMP_LINE} | grep -o '[^ ]*$')
-                case "$lastArg" in
-                *:*)
-                    _log_write \*lastArg=$lastArg
-                    COMPREPLY=($(compgen -W "${mdCmds}" -- ${lastArg} | sed "s/${lastArg}/${cur}/g"))
-                    _log_write \*COMPREPLY=$COMPREPLY
-                    ;;
-                *)
-                    _log_write \*response previous reply
-                    ;;
-                esac
+                if test ${skipFile} -eq 1; then
+                    COMPREPLY=($(compgen -W "${builtinOpts} ${mdCmds}" -- "${cur}"))
+                    skipFile=0
+                else
+                    local lastArg=$(echo ${COMP_LINE} | grep -o '[^ ]*$')
+                    _log_write :lastArg=$lastArg
+
+                    case ${lastArg} in
+                    *:*)
+                        case ${cur} in
+                        :)
+                            COMPREPLY=($(compgen -W "${mdCmds}" -- ${lastArg} | sed "s/${lastArg}//g"))
+                            ;;
+                        '')
+                            COMPREPLY=()
+                            _log_write stop reply
+                            break
+                            ;;
+                        *)
+                            COMPREPLY=($(compgen -W "${mdCmds}" -- ${lastArg} | sed "s/${lastArg}/${cur}/g"))
+                            ;;
+                        esac
+                        ;;
+                    esac
+                    _log_write [\*]COMPREPLY=$COMPREPLY
+                fi
                 ;;
             esac
 
