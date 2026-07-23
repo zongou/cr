@@ -104,8 +104,6 @@ _cr() {
                             ;;
                         '')
                             COMPREPLY=()
-                            _log_write stop reply
-                            break
                             ;;
                         *)
                             COMPREPLY=($(compgen -W "${mdCmds}" -- ${lastArg} | sed "s/${lastArg}/${cur}/g"))
