@@ -111,8 +111,8 @@ _cr() {
                         esac
                         ;;
                     esac
-                    _log_write [\*]COMPREPLY=$COMPREPLY
                 fi
+                _log_write [\*]COMPREPLY=$COMPREPLY
                 ;;
             esac
 
