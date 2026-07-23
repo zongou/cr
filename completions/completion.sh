@@ -88,8 +88,9 @@ _cr() {
             :)
 
                 local lastArg=$(echo ${COMP_LINE} | grep -o '[^ ]*$')
-                _log_write lastArg=$(echo ${COMP_LINE} | grep -o '[^ ]*$')
-                COMPREPLY=($(compgen -W "${mdcmds}" -- ${lastArg} | grep -Eo '\w+\b$'))
+                _log_write :lastArg=$lastArg
+                COMPREPLY=($(compgen -W "${mdcmds}" -- ${lastArg} | sed "s/${lastArg}//g"))
+                _log_write :COMPREPLY=$COMPREPLY
                 ;;
             '')
                 _log_write response previous reply
@@ -99,8 +100,9 @@ _cr() {
                 local lastArg=$(echo ${COMP_LINE} | grep -o '[^ ]*$')
                 case "$lastArg" in
                 *:*)
-                    _log_write \*reply=$(compgen -W "${mdcmds}" -- ${lastArg} | sed "s/${lastArg}//g")
+                    _log_write \*lastArg=$lastArg
                     COMPREPLY=($(compgen -W "${mdcmds}" -- ${lastArg} | sed "s/${lastArg}/${cur}/g"))
+                    _log_write \*COMPREPLY=$COMPREPLY
                     ;;
                 *)
                     _log_write \*response previous reply
