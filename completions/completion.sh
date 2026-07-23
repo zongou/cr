@@ -73,7 +73,7 @@ _cr() {
 
                 if test -f "${fileOpt}"; then
                     mdCmds=$(cr -1 -f "${fileOpt}")
-                    mdHeadings=$(cr -t -t "${fileOpt}" | grep -Eo '(├──|└──).+  ' | cut -d ' ' -f2-)
+                    mdHeadings=$(cr -t -f "${fileOpt}" | grep -Eo '(├──|└──).+  ' | cut -d ' ' -f2-)
                 fi
 
                 i=$((i + 1))
