@@ -34,15 +34,15 @@ _cr() {
     local cur=${COMP_WORDS[COMP_CWORD]}      # Current word
     local prev=${COMP_WORDS[COMP_CWORD - 1]} # Previous word
     local builtinOpts="-h --help -f --file -c --code -1 -t --tree -l --log-file"
-    local mdcmds=$(cr -1)
-    local mdheadings=$(cr -t | grep -Eo '(├──|└──).+  ' | cut -d ' ' -f2-)
+    local mdCmds=$(cr -1)
+    local mdHeadings=$(cr -t | grep -Eo '(├──|└──).+  ' | cut -d ' ' -f2-)
 
     _log_write cur=$cur
     _log_write prev=$prev
 
     if test ${COMP_CWORD} -eq 1; then
         _log_write 0 args
-        COMPREPLY=($(compgen -W "${builtinOpts} ${mdcmds}" -- ${cur}))
+        COMPREPLY=($(compgen -W "${builtinOpts} ${mdCmds}" -- ${cur}))
     else
         local i=1
         local fileOpt
@@ -56,15 +56,15 @@ _cr() {
                 ;;
             -c | --code)
                 _log_write is_code
-                COMPREPLY=($(compgen -W "${mdcmds}" -- "${cur}"))
+                COMPREPLY=($(compgen -W "${mdCmds}" -- "${cur}"))
                 ;;
             -t | --tree)
                 _log_write is_tree
-                COMPREPLY=($(compgen -W "${mdheadings}" -- "${cur}"))
+                COMPREPLY=($(compgen -W "${mdHeadings}" -- "${cur}"))
                 ;;
             -1)
                 _log_write is_one
-                COMPREPLY=($(compgen -W "${mdcmds}" -- "${cur}"))
+                COMPREPLY=($(compgen -W "${mdCmds}" -- "${cur}"))
                 ;;
             -f | --file)
                 COMPREPLY=($(compgen -f -- "${cur}"))
@@ -72,8 +72,8 @@ _cr() {
                 _log_write fileOpt=${fileOpt}
 
                 if test -f "${fileOpt}"; then
-                    mdcmds=$(cr -1 -f "${fileOpt}")
-                    mdheadings=$(cr -t -t "${fileOpt}" | grep -Eo '(├──|└──).+  ' | cut -d ' ' -f2-)
+                    mdCmds=$(cr -1 -f "${fileOpt}")
+                    mdHeadings=$(cr -t -t "${fileOpt}" | grep -Eo '(├──|└──).+  ' | cut -d ' ' -f2-)
                 fi
 
                 i=$((i + 1))
@@ -88,7 +88,7 @@ _cr() {
             :)
                 local lastArg=$(echo ${COMP_LINE} | grep -o '[^ ]*$')
                 _log_write :lastArg=$lastArg
-                COMPREPLY=($(compgen -W "${mdcmds}" -- ${lastArg} | sed "s/${lastArg}//g"))
+                COMPREPLY=($(compgen -W "${mdCmds}" -- ${lastArg} | sed "s/${lastArg}//g"))
                 _log_write :COMPREPLY=$COMPREPLY
                 ;;
             '')
@@ -100,7 +100,7 @@ _cr() {
                 case "$lastArg" in
                 *:*)
                     _log_write \*lastArg=$lastArg
-                    COMPREPLY=($(compgen -W "${mdcmds}" -- ${lastArg} | sed "s/${lastArg}/${cur}/g"))
+                    COMPREPLY=($(compgen -W "${mdCmds}" -- ${lastArg} | sed "s/${lastArg}/${cur}/g"))
                     _log_write \*COMPREPLY=$COMPREPLY
                     ;;
                 *)

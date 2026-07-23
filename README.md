@@ -20,7 +20,7 @@ cr echo Hello, 世界！
 
 ## Features
 
-### Built-in supported codeblock types
+### Built-in supported codeblock infos
 
 - sh
 - bash
@@ -122,7 +122,7 @@ export MD_C="sh,-c,printf '%s' '{CODE}'>${TMPDIR}/a.c && cc ${TMPDIR}/a.c -o $TM
 ${CR} c_hello
 ```
 
-## Dev
+## Development
 
 ### Run
 
