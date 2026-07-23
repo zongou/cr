@@ -91,7 +91,6 @@ _cr() {
                 _log_write lastArg=$(echo ${COMP_LINE} | grep -o '[^ ]*$')
                 COMPREPLY=($(compgen -W "${mdcmds}" -- ${lastArg} | grep -Eo '\w+\b$'))
                 ;;
-
             '')
                 _log_write 0response previous reply
                 ;;
@@ -107,7 +106,6 @@ _cr() {
                     _log_write \*response previous reply
                     ;;
                 esac
-
                 ;;
             esac
 
