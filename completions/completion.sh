@@ -92,7 +92,7 @@ _cr() {
                 COMPREPLY=($(compgen -W "${mdcmds}" -- ${lastArg} | grep -Eo '\w+\b$'))
                 ;;
             '')
-                _log_write 0response previous reply
+                _log_write response previous reply
                 ;;
 
             *)
