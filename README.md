@@ -200,7 +200,7 @@ if command -v sudo >/dev/null; then
 elif test "${PREFIX+1}"; then
     install "${program}" "${PREFIX}/bin/${program}"
     if test -d "${PREFIX}/etc/bash_completion.d/"; then
-        sudo install completions/completion.sh "${PREFIX}/etc/bash_completion.d/cr"
+        install completions/completion.sh "${PREFIX}/etc/bash_completion.d/cr"
     fi
 fi
 ```
