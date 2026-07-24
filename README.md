@@ -194,8 +194,14 @@ Install what is built.
 program=cr
 if command -v sudo >/dev/null; then
     sudo install "${program}" "/usr/local/bin/${program}"
+    if test -d /etc/bash_completion.d/; then
+        sudo install completions/completion.sh /etc/bash_completion.d/cr
+    fi
 elif test "${PREFIX+1}"; then
     install "${program}" "${PREFIX}/bin/${program}"
+    if test -d "${PREFIX}/etc/bash_completion.d/"; then
+        sudo install completions/completion.sh "${PREFIX}/etc/bash_completion.d/cr"
+    fi
 fi
 ```
 
