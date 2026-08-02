@@ -202,6 +202,15 @@ target=$(uname -m)-linux-musl
 zig run -target ${target} -lc c/main.c -- "$@"
 ```
 
+#### Run:rust
+
+Run rust version
+
+```sh
+cd rust
+cargo run -- "$@"
+```
+
 ### Build
 
 Choose one to build
@@ -259,6 +268,22 @@ Build C release with zig
 ```sh
 target=$(uname -m)-linux-musl
 zig cc -target ${target} -o cr c/main.c -static -s "$@"
+```
+
+#### Build:rust
+
+```sh
+cd rust
+cargo build "$@"
+cp target/debug/cr ../cr
+```
+
+#### Build:rust:release
+
+```sh
+cd rust
+cargo build --release "$@"
+cp target/debug/cr ../cr
 ```
 
 ### Install
