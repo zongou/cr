@@ -1,0 +1,13 @@
+[package]
+name = "cr-rs"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.3", features = ["derive"] }
+pulldown-cmark = "0.9"
+unicode-width = "0.1"
+anyhow = "1.0"
+
+# For pretty tree printing (optional)
+ptree = "0.3"
