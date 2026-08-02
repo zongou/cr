@@ -108,7 +108,6 @@ export MD_PY="${MD_PYTHON}"
 export MD_C="sh,-c,printf '%s' '{CODE}'>/tmp/a.c && cc /tmp/a.c -o /tmp/a && /tmp/a"
 export MD_CPP="sh,-c,printf '%s' '{CODE}'>/tmp/a.cpp && c++ /tmp/a.cpp -o /tmp/a && /tmp/a"
 export MD_CXX="${MD_CPP}"
-export MD_C++="${MD_CPP}"
 export MD_RUST="sh,-c,printf '%s' '{CODE}'>/tmp/a.rs && rustc /tmp/a.rs -o /tmp/a && /tmp/a"
 export MD_RS="${MD_RUST}"
 export MD_ZIG="sh,-c,printf '%s' '{CODE}'>/tmp/a.zig && zig run -lc /tmp/a.zig"
@@ -190,6 +189,7 @@ cr c_hello
 Run Go version
 
 ```sh
+cd go
 go run . "$@"
 ```
 
@@ -198,8 +198,18 @@ go run . "$@"
 Run C version with zig
 
 ```sh
+cd c
 target=$(uname -m)-linux-musl
-zig run -target ${target} -lc c/main.c -- "$@"
+zig run -target ${target} -lc main.c -- "$@"
+```
+
+#### Run:rust
+
+Run rust version
+
+```sh
+cd rust
+cargo run -- "$@"
 ```
 
 ### Build
@@ -216,7 +226,8 @@ cr ${opt}
 Build Go version
 
 ```sh
-go build "$@" .
+cd go
+go build -o ../cr "$@" .
 ```
 
 #### Build:go:release
@@ -224,7 +235,8 @@ go build "$@" .
 Build Go release version
 
 ```sh
-go build -ldflags="-w -s" "$@" .
+cd go
+go build -o ../cr -ldflags="-w -s" "$@" .
 ```
 
 #### Build:c
@@ -232,7 +244,8 @@ go build -ldflags="-w -s" "$@" .
 Build C version
 
 ```sh
-cc -o cr c/main.c "$@"
+cd c
+cc -o ../cr main.c "$@"
 ```
 
 #### Build:c:release
@@ -240,7 +253,8 @@ cc -o cr c/main.c "$@"
 Build C release version
 
 ```sh
-cc -o cr c/main.c -static -s "$@"
+cd c
+cc -o ../cr main.c -static -s "$@"
 ```
 
 #### Build:c_zig
@@ -248,8 +262,9 @@ cc -o cr c/main.c -static -s "$@"
 Build C with zig
 
 ```sh
+cd c
 target=$(uname -m)-linux-musl
-zig cc -target ${target} -o cr c/main.c "$@"
+zig cc -target ${target} -o ../cr main.c "$@"
 ```
 
 #### Build:c_zig:release
@@ -257,8 +272,25 @@ zig cc -target ${target} -o cr c/main.c "$@"
 Build C release with zig
 
 ```sh
+cd c
 target=$(uname -m)-linux-musl
-zig cc -target ${target} -o cr c/main.c -static -s "$@"
+zig cc -target ${target} -o ../cr main.c -static -s "$@"
+```
+
+#### Build:rust
+
+```sh
+cd rust
+cargo build "$@"
+cp target/debug/cr ../cr
+```
+
+#### Build:rust:release
+
+```sh
+cd rust
+cargo build --release "$@"
+cp target/release/cr ../cr
 ```
 
 ### Install
