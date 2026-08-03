@@ -255,7 +255,7 @@ Build C release version
 
 ```sh
 cd c
-cc -o ../cr c/main.c -static -s "$@"
+cc -o ../cr main.c -static -s "$@"
 ```
 
 #### Build:c_zig
