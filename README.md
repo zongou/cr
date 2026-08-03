@@ -291,7 +291,7 @@ cp target/debug/cr ../cr
 ```sh
 cd rust
 cargo build --release "$@"
-cp target/debug/cr ../cr
+cp target/release/cr ../cr
 ```
 
 ### Install
