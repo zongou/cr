@@ -228,7 +228,7 @@ Build Go version
 
 ```sh
 cd go
-go build "$@" .
+go build -o ../cr "$@" .
 ```
 
 #### Build:go:release
@@ -237,7 +237,7 @@ Build Go release version
 
 ```sh
 cd go
-go build -ldflags="-w -s" "$@" .
+go build -o ../cr -ldflags="-w -s" "$@" .
 ```
 
 #### Build:c
@@ -246,7 +246,7 @@ Build C version
 
 ```sh
 cd c
-cc -o cr main.c "$@"
+cc -o ../cr main.c "$@"
 ```
 
 #### Build:c:release
@@ -255,7 +255,7 @@ Build C release version
 
 ```sh
 cd c
-cc -o cr c/main.c -static -s "$@"
+cc -o ../cr c/main.c -static -s "$@"
 ```
 
 #### Build:c_zig
@@ -265,7 +265,7 @@ Build C with zig
 ```sh
 cd c
 target=$(uname -m)-linux-musl
-zig cc -target ${target} -o cr main.c "$@"
+zig cc -target ${target} -o ../cr main.c "$@"
 ```
 
 #### Build:c_zig:release
@@ -275,7 +275,7 @@ Build C release with zig
 ```sh
 cd c
 target=$(uname -m)-linux-musl
-zig cc -target ${target} -o cr main.c -static -s "$@"
+zig cc -target ${target} -o ../cr main.c -static -s "$@"
 ```
 
 #### Build:rust
