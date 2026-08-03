@@ -190,6 +190,7 @@ cr c_hello
 Run Go version
 
 ```sh
+cd go
 go run . "$@"
 ```
 
@@ -198,8 +199,9 @@ go run . "$@"
 Run C version with zig
 
 ```sh
+cd c
 target=$(uname -m)-linux-musl
-zig run -target ${target} -lc c/main.c -- "$@"
+zig run -target ${target} -lc main.c -- "$@"
 ```
 
 #### Run:rust
@@ -225,6 +227,7 @@ cr ${opt}
 Build Go version
 
 ```sh
+cd go
 go build "$@" .
 ```
 
@@ -233,6 +236,7 @@ go build "$@" .
 Build Go release version
 
 ```sh
+cd go
 go build -ldflags="-w -s" "$@" .
 ```
 
@@ -241,7 +245,8 @@ go build -ldflags="-w -s" "$@" .
 Build C version
 
 ```sh
-cc -o cr c/main.c "$@"
+cd c
+cc -o cr main.c "$@"
 ```
 
 #### Build:c:release
@@ -249,6 +254,7 @@ cc -o cr c/main.c "$@"
 Build C release version
 
 ```sh
+cd c
 cc -o cr c/main.c -static -s "$@"
 ```
 
@@ -257,8 +263,9 @@ cc -o cr c/main.c -static -s "$@"
 Build C with zig
 
 ```sh
+cd c
 target=$(uname -m)-linux-musl
-zig cc -target ${target} -o cr c/main.c "$@"
+zig cc -target ${target} -o cr main.c "$@"
 ```
 
 #### Build:c_zig:release
@@ -266,8 +273,9 @@ zig cc -target ${target} -o cr c/main.c "$@"
 Build C release with zig
 
 ```sh
+cd c
 target=$(uname -m)-linux-musl
-zig cc -target ${target} -o cr c/main.c -static -s "$@"
+zig cc -target ${target} -o cr main.c -static -s "$@"
 ```
 
 #### Build:rust

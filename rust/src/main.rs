@@ -392,6 +392,9 @@ fn main() -> Result<()> {
         std::process::exit(1);
     };
 
+    env::set_var("CR_FILE", &file_path);
+    env::set_var("CR", env::current_exe().unwrap_or_else(|_| PathBuf::from("cr")).to_string_lossy().to_string());
+
     let nodes = app.parse_file(&file_path).context("parsing markdown")?;
 
     if let Some(ref heading) = cli.heading {
