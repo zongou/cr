@@ -1,5 +1,5 @@
 use clap::Parser;
-use pulldown_cmark::{Event, Options, Parser as MdParser, Tag};
+use pulldown_cmark::{Event, Options, Parser as MdParser, Tag, TagEnd};
 use std::collections::HashMap;
 use std::env;
 use std::fs::{self};
@@ -129,10 +129,10 @@ impl App {
 
         for event in parser {
             match event {
-                Event::Start(Tag::Heading(hl, _, _)) => {
+                Event::Start(Tag::Heading { level, .. }) => {
                     in_heading = true;
                     cur_buf.clear();
-                    cur_level = match hl {
+                    cur_level = match level {
                         pulldown_cmark::HeadingLevel::H1 => 1,
                         pulldown_cmark::HeadingLevel::H2 => 2,
                         pulldown_cmark::HeadingLevel::H3 => 3,
@@ -141,7 +141,7 @@ impl App {
                         pulldown_cmark::HeadingLevel::H6 => 6,
                     };
                 }
-                Event::End(Tag::Heading(..)) => {
+                Event::End(TagEnd::Heading(_)) => {
                     in_heading = false;
                     let node = MDNode { text: cur_buf.trim().to_string(), level: cur_level, ..Default::default() };
                     // attach into tree using stack by level
@@ -208,8 +208,8 @@ impl App {
 
         for event in parser2 {
             match event {
-                Event::Start(Tag::Heading(_, _, _)) => { para_buf.clear(); }
-                Event::End(Tag::Heading(..)) => {
+                Event::Start(Tag::Heading { .. }) => { para_buf.clear(); }
+                Event::End(TagEnd::Heading(_)) => {
                     if !para_buf.trim().is_empty() { last_heading = Some(para_buf.trim().to_string()); }
                     para_buf.clear();
                 }
@@ -230,7 +230,7 @@ impl App {
                         pulldown_cmark::CodeBlockKind::Indented => String::new(),
                     };
                 }
-                Event::End(Tag::CodeBlock(_)) => {
+                Event::End(TagEnd::CodeBlock) => {
                     in_codeblock = false;
                     if let Some(ref h) = last_heading {
                         let _ = attach_code(&mut nodes, h, code_lang.clone(), code_buf.clone());
@@ -238,7 +238,7 @@ impl App {
                     code_buf.clear();
                 }
                 Event::Start(Tag::Paragraph) => { in_paragraph = true; para_buf.clear(); }
-                Event::End(Tag::Paragraph) => {
+                Event::End(TagEnd::Paragraph) => {
                     in_paragraph = false;
                     if let Some(ref h) = last_heading {
                         let _ = attach_description(&mut nodes, h, para_buf.trim().to_string());

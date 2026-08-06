@@ -5,9 +5,9 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.3", features = ["derive"] }
-pulldown-cmark = "0.9"
-unicode-width = "0.1"
+pulldown-cmark = "0.13.4"
+unicode-width = "0.1.14"
 anyhow = "1.0"
 
 # For pretty tree printing (optional)
-ptree = "0.3"
+ptree = "0.5.2"
