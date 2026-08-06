@@ -282,7 +282,7 @@ zig cc -target ${target} -o ../cr main.c -static -s "$@"
 ```sh
 cd rust
 cargo build "$@"
-cp target/debug/cr ../cr
+cp target/release/cr ../cr
 ```
 
 #### Build:rust:release
