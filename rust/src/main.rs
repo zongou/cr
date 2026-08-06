@@ -32,8 +32,8 @@ struct Cli {
     #[arg(short = 'l', long = "log-file")]
     log_file: Option<PathBuf>,
 
-    /// Heading (positional)
-    #[arg(trailing_var_arg = true)]
+    /// Heading (as a command)
+    #[arg(trailing_var_arg = true, value_names=["HEADING", "ARGS"])]
     heading: Vec<String>,
 }
 
