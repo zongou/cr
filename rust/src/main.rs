@@ -33,10 +33,8 @@ struct Cli {
     log_file: Option<PathBuf>,
 
     /// Heading (positional)
-    heading: Option<String>,
-
-    /// Arguments passed to executed commands
-    args: Vec<String>,
+    #[arg(trailing_var_arg = true)]
+    heading: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -397,7 +395,8 @@ fn main() -> Result<()> {
 
     let nodes = app.parse_file(&file_path).context("parsing markdown")?;
 
-    if let Some(ref heading) = cli.heading {
+    if let Some(heading) = cli.heading.first() {
+        let subcommand_args = cli.heading.iter().skip(1).cloned().collect::<Vec<_>>();
         fn find_mut<'a>(nodes: &'a mut [MDNode], h: &str) -> Option<&'a mut MDNode> {
             for node in nodes {
                 if node.text.eq_ignore_ascii_case(h) { return Some(node); }
@@ -412,7 +411,7 @@ fn main() -> Result<()> {
             if cli.code { for cb in &found.code_blocks { print!("{}", cb.code); } }
             else if cli.one { app.print_one(&[found.clone()]); }
             else if cli.tree { app.print_tree(&[found.clone()]); }
-            else { let status = app.exec_node(found, &cli.args, &file_path); std::process::exit(status); }
+            else { let status = app.exec_node(found, &subcommand_args, &file_path); std::process::exit(status); }
         } else { eprintln!("Node not found: {}", heading); std::process::exit(1); }
     } else {
         if cli.one { app.print_one(&nodes); }
