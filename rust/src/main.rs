@@ -187,7 +187,7 @@ impl App {
         fn attach_description(nodes: &mut [MDNode], heading: &str, desc: String) -> bool {
             for node in nodes.iter_mut() {
                 if node.text.eq_ignore_ascii_case(heading) {
-                    if node.description.is_empty() { node.description = desc; }
+                    if node.description.is_empty() && node.code_blocks.is_empty() { node.description = desc; }
                     return true;
                 }
                 if !node.children.is_empty() {
