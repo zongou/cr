@@ -228,6 +228,7 @@ impl App {
                     code_lang = match kind {
                         pulldown_cmark::CodeBlockKind::Fenced(info) => {
                             info.to_string().split_whitespace().next().unwrap_or("").to_string()
+                            // info.to_string()
                         }
                         pulldown_cmark::CodeBlockKind::Indented => String::new(),
                     };
@@ -363,7 +364,7 @@ impl App {
             if formatted.is_empty() { eprintln!("no executor for language"); return 1; }
             let mut cmd = Command::new(&formatted[0]);
             if formatted.len()>1 { cmd.args(&formatted[1..]); }
-            cmd.current_dir(file_path.parent().unwrap_or(Path::new(".")));
+            cmd.current_dir(fs::canonicalize(file_path).unwrap().parent().unwrap());
             cmd.stdin(std::process::Stdio::inherit());
             cmd.stdout(std::process::Stdio::inherit());
             cmd.stderr(std::process::Stdio::inherit());
