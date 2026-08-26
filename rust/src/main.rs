@@ -226,7 +226,9 @@ impl App {
                     in_codeblock = true;
                     code_buf.clear();
                     code_lang = match kind {
-                        pulldown_cmark::CodeBlockKind::Fenced(lang) => lang.to_string(),
+                        pulldown_cmark::CodeBlockKind::Fenced(info) => {
+                            info.to_string().split_whitespace().next().unwrap_or("").to_string()
+                        }
                         pulldown_cmark::CodeBlockKind::Indented => String::new(),
                     };
                 }
