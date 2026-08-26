@@ -186,16 +186,16 @@ cr c_hello
 
 #### Run:go
 
-Run Go version
+Run program (go)
 
 ```sh
 cd go
 go run . "$@"
 ```
 
-#### Run:c
+#### Zig-run:c
 
-Run C version with zig
+Zig run program (c)
 
 ```sh
 cd c
@@ -205,7 +205,7 @@ zig run -target ${target} -lc main.c -- "$@"
 
 #### Run:rust
 
-Run rust version
+Run program (rust)
 
 ```sh
 cd rust
@@ -223,7 +223,7 @@ cr ${opt}
 
 #### Build:go
 
-Build Go version
+Build program (go)
 
 ```sh
 cd go
@@ -232,7 +232,7 @@ go build -o ../cr "$@" .
 
 #### Build:go:release
 
-Build Go release version
+Build for releasse (go)
 
 ```sh
 cd go
@@ -241,7 +241,7 @@ go build -o ../cr -ldflags="-w -s" "$@" .
 
 #### Build:c
 
-Build C version
+Build program (c)
 
 ```sh
 cd c
@@ -250,16 +250,16 @@ cc -o ../cr main.c "$@"
 
 #### Build:c:release
 
-Build C release version
+Build for release (c)
 
 ```sh
 cd c
 cc -o ../cr main.c -static -s "$@"
 ```
 
-#### Build:c_zig
+#### Zig-build:c
 
-Build C with zig
+Zig build program (c)
 
 ```sh
 cd c
@@ -267,9 +267,9 @@ target=$(uname -m)-linux-musl
 zig cc -target ${target} -o ../cr main.c "$@"
 ```
 
-#### Build:c_zig:release
+#### Zig-build:c:release
 
-Build C release with zig
+Zig build for release (c)
 
 ```sh
 cd c
@@ -279,13 +279,17 @@ zig cc -target ${target} -o ../cr main.c -static -s "$@"
 
 #### Build:rust
 
+Build program (rust)
+
 ```sh
 cd rust
 cargo build "$@"
-cp target/release/cr ../cr
+cp target/debug/cr ../cr
 ```
 
 #### Build:rust:release
+
+Build for release (rust)
 
 ```sh
 cd rust
@@ -295,7 +299,7 @@ cp target/release/cr ../cr
 
 ### Install
 
-Install what is built
+Install program
 
 ```sh
 program=cr
