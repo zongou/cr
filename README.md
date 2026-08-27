@@ -182,120 +182,52 @@ cr c_hello
 
 ## Development
 
-### Run
+### Build
 
-#### Run:go
-
-Run Go version
+Build program
 
 ```sh
-cd go
-go run . "$@"
+cc -o cr main.c "$@"
 ```
 
-#### Run:c
+### Build:release
 
-Run C version with zig
+Build for release
 
 ```sh
-cd c
+cc -o cr main.c -static -s "$@"
+```
+
+### Zig-Run
+
+Zig run program
+
+```sh
 target=$(uname -m)-linux-musl
 zig run -target ${target} -lc main.c -- "$@"
 ```
 
-#### Run:rust
+### Zig-Build
 
-Run rust version
-
-```sh
-cd rust
-cargo run -- "$@"
-```
-
-### Build
-
-Choose one to build
+Zig build program
 
 ```sh
-opt=$(cr -1 build | gum choose --header="Choose one to build")
-cr ${opt}
-```
-
-#### Build:go
-
-Build Go version
-
-```sh
-cd go
-go build -o ../cr "$@" .
-```
-
-#### Build:go:release
-
-Build Go release version
-
-```sh
-cd go
-go build -o ../cr -ldflags="-w -s" "$@" .
-```
-
-#### Build:c
-
-Build C version
-
-```sh
-cd c
-cc -o ../cr main.c "$@"
-```
-
-#### Build:c:release
-
-Build C release version
-
-```sh
-cd c
-cc -o ../cr main.c -static -s "$@"
-```
-
-#### Build:c_zig
-
-Build C with zig
-
-```sh
-cd c
 target=$(uname -m)-linux-musl
-zig cc -target ${target} -o ../cr main.c "$@"
+zig cc -target ${target} -o cr main.c "$@"
 ```
 
-#### Build:c_zig:release
+### Zig-Build:release
 
-Build C release with zig
+Zig build for release
 
 ```sh
-cd c
 target=$(uname -m)-linux-musl
-zig cc -target ${target} -o ../cr main.c -static -s "$@"
-```
-
-#### Build:rust
-
-```sh
-cd rust
-cargo build "$@"
-cp target/debug/cr ../cr
-```
-
-#### Build:rust:release
-
-```sh
-cd rust
-cargo build --release "$@"
-cp target/release/cr ../cr
+zig cc -target ${target} -o cr main.c -static -s "$@"
 ```
 
 ### Install
 
-Install what is built
+Install program
 
 ```sh
 program=cr
