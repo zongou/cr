@@ -193,7 +193,7 @@ cd go
 go run . "$@"
 ```
 
-#### Zig-run:c
+#### Run:c
 
 Zig run program (c)
 
