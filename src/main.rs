@@ -34,7 +34,7 @@ struct Cli {
 
     /// Heading (as a command)
     #[arg(trailing_var_arg = true, value_names=["HEADING", "ARGS"])]
-    heading: Vec<String>,
+    command_and_args: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -444,8 +444,8 @@ fn main() -> Result<()> {
 
     let mut nodes = app.parse_file(&file_path).context("parsing markdown")?;
 
-    if let Some(heading) = cli.heading.first() {
-        let subcommand_args: Vec<String> = cli.heading.iter().skip(1).cloned().collect();
+    if let Some(heading) = cli.command_and_args.first() {
+        let subcommand_args: Vec<String> = cli.command_and_args.iter().skip(1).cloned().collect();
         fn find<'a>(nodes: &'a [MDNode], h: &str) -> Option<&'a MDNode> {
             for node in nodes {
                 if node.text.eq_ignore_ascii_case(h) {
