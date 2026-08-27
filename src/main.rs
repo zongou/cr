@@ -133,10 +133,10 @@ impl App {
                 });
                 return true;
             }
-            if !node.children.is_empty() {
-                if Self::attach_code(&mut node.children, heading, lang, code) {
-                    return true;
-                }
+            if !node.children.is_empty()
+                && Self::attach_code(&mut node.children, heading, lang, code)
+            {
+                return true;
             }
         }
         false
@@ -150,10 +150,10 @@ impl App {
                 }
                 return true;
             }
-            if !node.children.is_empty() {
-                if Self::attach_description(&mut node.children, heading, desc) {
-                    return true;
-                }
+            if !node.children.is_empty()
+                && Self::attach_description(&mut node.children, heading, desc)
+            {
+                return true;
             }
         }
         false
@@ -173,7 +173,6 @@ impl App {
         let mut cur_buf = String::new();
 
         let mut last_heading: Option<String> = None;
-        let mut in_paragraph = false;
         let mut para_buf = String::new();
         let mut in_codeblock = false;
         let mut code_buf = String::new();
@@ -227,8 +226,6 @@ impl App {
                         cur_buf.push_str(&t);
                     } else if in_codeblock {
                         code_buf.push_str(&t);
-                    } else if in_paragraph {
-                        para_buf.push_str(&t);
                     } else {
                         para_buf.push_str(&t);
                     }
@@ -251,11 +248,9 @@ impl App {
                     code_buf.clear();
                 }
                 Event::Start(Tag::Paragraph) => {
-                    in_paragraph = true;
                     para_buf.clear();
                 }
                 Event::End(TagEnd::Paragraph) => {
-                    in_paragraph = false;
                     if let Some(ref h) = last_heading {
                         Self::attach_description(&mut nodes, h, para_buf.trim());
                     }
@@ -310,7 +305,7 @@ impl App {
             max
         }
 
-        fn print_subtree(node: &MDNode, app: &App, prefix: &str, max_branch: usize) {
+        fn print_subtree(node: &MDNode, _app: &App, prefix: &str, max_branch: usize) {
             let children: Vec<&MDNode> = node.children.iter().filter(|c| c.used).collect();
             for (i, child) in children.iter().enumerate() {
                 let last = i + 1 == children.len();
@@ -335,7 +330,7 @@ impl App {
                 } else {
                     format!("{}│   ", prefix)
                 };
-                print_subtree(child, app, &next_prefix, max_branch);
+                print_subtree(child, _app, &next_prefix, max_branch);
             }
         }
 
@@ -477,13 +472,7 @@ fn main() -> Result<()> {
             std::process::exit(1);
         }
     } else {
-        if cli.one {
-            app.print_one(&nodes);
-        } else if cli.tree {
-            app.print_tree(&mut nodes);
-        } else {
-            app.print_tree(&mut nodes);
-        }
+        app.print_tree(&mut nodes);
     }
     Ok(())
 }
