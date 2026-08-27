@@ -1,3 +1,4 @@
+use anyhow::{Context, Result};
 use clap::Parser;
 use pulldown_cmark::{Event, Options, Parser as MdParser, Tag, TagEnd};
 use std::collections::HashMap;
@@ -7,7 +8,6 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use unicode_width::UnicodeWidthStr;
-use anyhow::{Context, Result};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -83,7 +83,11 @@ impl App {
         e!("ps2" => ["powershell.exe","-c","{CODE}"]);
         e!("powershell" => ["powershell.exe","-c","{CODE}"]);
 
-        Self { executors, custom_executors: HashMap::new(), log_file: None }
+        Self {
+            executors,
+            custom_executors: HashMap::new(),
+            log_file: None,
+        }
     }
 
     fn parse_custom_executors(&mut self) {
@@ -97,7 +101,11 @@ impl App {
     }
 
     fn get_executor(&self, lang: &str) -> Option<&Vec<String>> {
-        if let Some(c) = self.custom_executors.get(lang) { Some(c) } else { self.executors.get(lang) }
+        if let Some(c) = self.custom_executors.get(lang) {
+            Some(c)
+        } else {
+            self.executors.get(lang)
+        }
     }
 
     fn find_doc(&self) -> Option<PathBuf> {
@@ -106,9 +114,13 @@ impl App {
         loop {
             for name in &candidates {
                 let p = dir.join(name);
-                if p.is_file() { return Some(p); }
+                if p.is_file() {
+                    return Some(p);
+                }
             }
-            if !dir.pop() { break; }
+            if !dir.pop() {
+                break;
+            }
         }
         None
     }
@@ -143,11 +155,17 @@ impl App {
                 }
                 Event::End(TagEnd::Heading(_)) => {
                     in_heading = false;
-                    let node = MDNode { text: cur_buf.trim().to_string(), level: cur_level, ..Default::default() };
+                    let node = MDNode {
+                        text: cur_buf.trim().to_string(),
+                        level: cur_level,
+                        ..Default::default()
+                    };
                     // attach into tree using stack by level
                     unsafe {
                         while let Some(&ptr) = stack.last() {
-                            if (*ptr).level < node.level { break; }
+                            if (*ptr).level < node.level {
+                                break;
+                            }
                             stack.pop();
                         }
                         if let Some(&parent_ptr) = stack.last() {
@@ -178,7 +196,9 @@ impl App {
                     return true;
                 }
                 if !node.children.is_empty() {
-                    if attach_code(&mut node.children, heading, lang.clone(), code.clone()) { return true; }
+                    if attach_code(&mut node.children, heading, lang.clone(), code.clone()) {
+                        return true;
+                    }
                 }
             }
             false
@@ -187,11 +207,15 @@ impl App {
         fn attach_description(nodes: &mut [MDNode], heading: &str, desc: String) -> bool {
             for node in nodes.iter_mut() {
                 if node.text.eq_ignore_ascii_case(heading) {
-                    if node.description.is_empty() && node.code_blocks.is_empty() { node.description = desc; }
+                    if node.description.is_empty() && node.code_blocks.is_empty() {
+                        node.description = desc;
+                    }
                     return true;
                 }
                 if !node.children.is_empty() {
-                    if attach_description(&mut node.children, heading, desc.clone()) { return true; }
+                    if attach_description(&mut node.children, heading, desc.clone()) {
+                        return true;
+                    }
                 }
             }
             false
@@ -208,9 +232,13 @@ impl App {
 
         for event in parser2 {
             match event {
-                Event::Start(Tag::Heading { .. }) => { para_buf.clear(); }
+                Event::Start(Tag::Heading { .. }) => {
+                    para_buf.clear();
+                }
                 Event::End(TagEnd::Heading(_)) => {
-                    if !para_buf.trim().is_empty() { last_heading = Some(para_buf.trim().to_string()); }
+                    if !para_buf.trim().is_empty() {
+                        last_heading = Some(para_buf.trim().to_string());
+                    }
                     para_buf.clear();
                 }
                 Event::Text(t) => {
@@ -227,7 +255,11 @@ impl App {
                     code_buf.clear();
                     code_lang = match kind {
                         pulldown_cmark::CodeBlockKind::Fenced(info) => {
-                            info.to_string().split_whitespace().next().unwrap_or("").to_string()
+                            info.to_string()
+                                .split_whitespace()
+                                .next()
+                                .unwrap_or("")
+                                .to_string()
                             // info.to_string()
                         }
                         pulldown_cmark::CodeBlockKind::Indented => String::new(),
@@ -240,7 +272,10 @@ impl App {
                     }
                     code_buf.clear();
                 }
-                Event::Start(Tag::Paragraph) => { in_paragraph = true; para_buf.clear(); }
+                Event::Start(Tag::Paragraph) => {
+                    in_paragraph = true;
+                    para_buf.clear();
+                }
                 Event::End(TagEnd::Paragraph) => {
                     in_paragraph = false;
                     if let Some(ref h) = last_heading {
@@ -275,7 +310,9 @@ impl App {
                     }
                 }
                 node.used = used;
-                if used { any_used = true; }
+                if used {
+                    any_used = true;
+                }
             }
             any_used
         }
@@ -286,30 +323,62 @@ impl App {
             fn walk(n: &MDNode, max: &mut usize) {
                 if n.used {
                     // branchSymbolWidth equivalent
-                    let branch_width = if n.level >= 1 { (n.level - 1) * 4 } else { 0 } + UnicodeWidthStr::width(n.text.as_str());
-                    if branch_width > *max { *max = branch_width; }
-                    for c in &n.children { walk(c, max); }
+                    let branch_width = if n.level >= 1 { (n.level - 1) * 4 } else { 0 }
+                        + UnicodeWidthStr::width(n.text.as_str());
+                    if branch_width > *max {
+                        *max = branch_width;
+                    }
+                    for c in &n.children {
+                        walk(c, max);
+                    }
                 }
             }
-            for c in &node.children { walk(c, &mut max); }
+            for c in &node.children {
+                walk(c, &mut max);
+            }
             max
         }
 
-        fn print_subtree(node: &MDNode, app: &App, prefix: &str, _is_last: bool, max_branch: usize) {
+        fn print_subtree(
+            node: &MDNode,
+            app: &App,
+            prefix: &str,
+            _is_last: bool,
+            max_branch: usize,
+        ) {
             // print children only (node itself printed by caller as root)
             let children: Vec<&MDNode> = node.children.iter().filter(|c| c.used).collect();
             for (i, child) in children.iter().enumerate() {
                 let last = i + 1 == children.len();
                 let branch = if last { "└── " } else { "├── " };
                 // compute padding
-                let branch_width = if child.level >= 1 { (child.level - 1) * 4 } else { 0 } + UnicodeWidthStr::width(child.text.as_str());
-                let pad = if max_branch > branch_width { max_branch - branch_width } else { 0 };
+                let branch_width = if child.level >= 1 {
+                    (child.level - 1) * 4
+                } else {
+                    0
+                } + UnicodeWidthStr::width(child.text.as_str());
+                let pad = if max_branch > branch_width {
+                    max_branch - branch_width
+                } else {
+                    0
+                };
                 let mut name = child.text.clone();
                 // Lowercase the branch text like Go
                 name = name.to_lowercase();
-                let line = format!("{}{}{} {} {}", prefix, branch, name, " ".repeat(pad), child.description);
+                let line = format!(
+                    "{}{}{} {} {}",
+                    prefix,
+                    branch,
+                    name,
+                    " ".repeat(pad),
+                    child.description
+                );
                 println!("{}", line);
-                let next_prefix = if last { format!("{}    ", prefix) } else { format!("{}│   ", prefix) };
+                let next_prefix = if last {
+                    format!("{}    ", prefix)
+                } else {
+                    format!("{}│   ", prefix)
+                };
                 print_subtree(child, app, &next_prefix, last, max_branch);
             }
         }
@@ -332,10 +401,14 @@ impl App {
     fn print_one(&self, nodes: &[MDNode]) {
         fn walk(app: &App, nodes: &[MDNode]) {
             for n in nodes {
-                if !n.code_blocks.is_empty() && app.get_executor(n.code_blocks[0].lang.as_str()).is_some() {
+                if !n.code_blocks.is_empty()
+                    && app.get_executor(n.code_blocks[0].lang.as_str()).is_some()
+                {
                     println!("{}", n.text.to_lowercase());
                 }
-                if !n.children.is_empty() { walk(app, &n.children); }
+                if !n.children.is_empty() {
+                    walk(app, &n.children);
+                }
             }
         }
         walk(self, nodes);
@@ -356,22 +429,38 @@ impl App {
             let exe = exe.unwrap();
             let mut prefix_args: Vec<String> = exe.iter().cloned().collect();
             for a in &mut prefix_args {
-                if a.contains("{LANG}") { *a = a.replace("{LANG}", lang); }
-                if a.contains("{CODE}") { *a = a.replace("{CODE}", &cb.code); }
+                if a.contains("{LANG}") {
+                    *a = a.replace("{LANG}", lang);
+                }
+                if a.contains("{CODE}") {
+                    *a = a.replace("{CODE}", &cb.code);
+                }
             }
             let mut formatted = prefix_args.clone();
             formatted.extend(origin_args.iter().cloned());
-            if formatted.is_empty() { eprintln!("no executor for language"); return 1; }
+            if formatted.is_empty() {
+                eprintln!("no executor for language");
+                return 1;
+            }
             let mut cmd = Command::new(&formatted[0]);
-            if formatted.len()>1 { cmd.args(&formatted[1..]); }
+            if formatted.len() > 1 {
+                cmd.args(&formatted[1..]);
+            }
             cmd.current_dir(fs::canonicalize(file_path).unwrap().parent().unwrap());
             cmd.stdin(std::process::Stdio::inherit());
             cmd.stdout(std::process::Stdio::inherit());
             cmd.stderr(std::process::Stdio::inherit());
             let status = cmd.status();
             match status {
-                Ok(s) => { if !s.success() { return s.code().unwrap_or(1); } }
-                Err(e) => { eprintln!("Error executing command: {}", e); return 1; }
+                Ok(s) => {
+                    if !s.success() {
+                        return s.code().unwrap_or(1);
+                    }
+                }
+                Err(e) => {
+                    eprintln!("Error executing command: {}", e);
+                    return 1;
+                }
             }
         }
         0
@@ -381,7 +470,9 @@ impl App {
 fn main() -> Result<()> {
     let cli = Cli::parse();
     let mut app = App::new();
-    if let Some(p) = cli.log_file.as_ref() { app.log_file = Some(p.clone()); }
+    if let Some(p) = cli.log_file.as_ref() {
+        app.log_file = Some(p.clone());
+    }
     app.parse_custom_executors();
 
     let file_path = if let Some(p) = cli.file.as_ref() {
@@ -394,7 +485,13 @@ fn main() -> Result<()> {
     };
 
     env::set_var("CR_FILE", &file_path);
-    env::set_var("CR", env::current_exe().unwrap_or_else(|_| PathBuf::from("cr")).to_string_lossy().to_string());
+    env::set_var(
+        "CR",
+        env::current_exe()
+            .unwrap_or_else(|_| PathBuf::from("cr"))
+            .to_string_lossy()
+            .to_string(),
+    );
 
     let nodes = app.parse_file(&file_path).context("parsing markdown")?;
 
@@ -402,24 +499,43 @@ fn main() -> Result<()> {
         let subcommand_args = cli.heading.iter().skip(1).cloned().collect::<Vec<_>>();
         fn find_mut<'a>(nodes: &'a mut [MDNode], h: &str) -> Option<&'a mut MDNode> {
             for node in nodes {
-                if node.text.eq_ignore_ascii_case(h) { return Some(node); }
+                if node.text.eq_ignore_ascii_case(h) {
+                    return Some(node);
+                }
                 if !node.children.is_empty() {
-                    if let Some(found) = find_mut(&mut node.children, h) { return Some(found); }
+                    if let Some(found) = find_mut(&mut node.children, h) {
+                        return Some(found);
+                    }
                 }
             }
             None
         }
         let mut nodes_clone = nodes.clone();
         if let Some(found) = find_mut(&mut nodes_clone, heading) {
-            if cli.code { for cb in &found.code_blocks { print!("{}", cb.code); } }
-            else if cli.one { app.print_one(&[found.clone()]); }
-            else if cli.tree { app.print_tree(&[found.clone()]); }
-            else { let status = app.exec_node(found, &subcommand_args, &file_path); std::process::exit(status); }
-        } else { eprintln!("Node not found: {}", heading); std::process::exit(1); }
+            if cli.code {
+                for cb in &found.code_blocks {
+                    print!("{}", cb.code);
+                }
+            } else if cli.one {
+                app.print_one(&[found.clone()]);
+            } else if cli.tree {
+                app.print_tree(&[found.clone()]);
+            } else {
+                let status = app.exec_node(found, &subcommand_args, &file_path);
+                std::process::exit(status);
+            }
+        } else {
+            eprintln!("Node not found: {}", heading);
+            std::process::exit(1);
+        }
     } else {
-        if cli.one { app.print_one(&nodes); }
-        else if cli.tree { app.print_tree(&nodes); }
-        else { app.print_tree(&nodes); }
+        if cli.one {
+            app.print_one(&nodes);
+        } else if cli.tree {
+            app.print_tree(&nodes);
+        } else {
+            app.print_tree(&nodes);
+        }
     }
     Ok(())
 }
