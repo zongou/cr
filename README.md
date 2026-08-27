@@ -182,6 +182,15 @@ cr c_hello
 
 ## Development
 
+### Run
+
+Zig run program
+
+```sh
+target=$(uname -m)-linux-musl
+zig run -target ${target} -lc main.c -- "$@"
+```
+
 ### Build
 
 Build program
@@ -196,15 +205,6 @@ Build for release
 
 ```sh
 cc -o cr main.c -static -s "$@"
-```
-
-### Zig-Run
-
-Zig run program
-
-```sh
-target=$(uname -m)-linux-musl
-zig run -target ${target} -lc main.c -- "$@"
 ```
 
 ### Zig-Build
