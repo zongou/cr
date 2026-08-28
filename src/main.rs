@@ -472,7 +472,11 @@ fn main() -> Result<()> {
             std::process::exit(1);
         }
     } else {
-        app.print_tree(&mut nodes);
+        if cli.one {
+            app.print_one(&mut nodes);
+        } else {
+            app.print_tree(&mut nodes);
+        }
     }
     Ok(())
 }
