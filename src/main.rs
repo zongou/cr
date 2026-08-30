@@ -407,6 +407,29 @@ impl App {
 fn main() -> Result<()> {
     let cli = Cli::parse();
     let mut app = App::new();
+    if let Some(p) = cli.log_file.as_ref() {
+        // Open file in append mode
+        let log_file = fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(p)
+            .expect("Failed to open log file");
+
+        let file_layer = tracing_subscriber::fmt::layer()
+            .with_writer(move || log_file.try_clone().expect("Failed to clone log file"))
+            .with_ansi(false)
+            .with_timer(tracing_subscriber::fmt::time::LocalTime::rfc_3339());
+
+        tracing_subscriber::util::SubscriberInitExt::init(
+            tracing_subscriber::layer::SubscriberExt::with(
+                tracing_subscriber::registry(),
+                file_layer,
+            ),
+        );
+
+        // Use tracing macros
+        tracing::info!("Log message appended to file");
+    }
     app.parse_custom_executors();
 
     let file_path = if let Some(p) = cli.file.as_ref() {
