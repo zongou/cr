@@ -56,7 +56,6 @@ struct MDNode {
 struct App {
     executors: HashMap<String, Vec<String>>,
     custom_executors: HashMap<String, Vec<String>>,
-    log_file: Option<PathBuf>,
 }
 
 impl App {
@@ -86,7 +85,6 @@ impl App {
         Self {
             executors,
             custom_executors: HashMap::new(),
-            log_file: None,
         }
     }
 
@@ -409,9 +407,6 @@ impl App {
 fn main() -> Result<()> {
     let cli = Cli::parse();
     let mut app = App::new();
-    if let Some(p) = cli.log_file.as_ref() {
-        app.log_file = Some(p.clone());
-    }
     app.parse_custom_executors();
 
     let file_path = if let Some(p) = cli.file.as_ref() {
