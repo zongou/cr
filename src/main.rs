@@ -25,11 +25,11 @@ struct Cli {
     tree: bool,
 
     /// Path to MarkDown file
-    #[arg(short = 'f', long = "file")]
+    #[arg(short = 'f', long = "file", value_names=["PATH"])]
     file: Option<PathBuf>,
 
     /// Path to log file for diagnostics
-    #[arg(short = 'l', long = "log-file")]
+    #[arg(short = 'l', long = "log-file", value_names=["PATH"])]
     log_file: Option<PathBuf>,
 
     /// Heading (as a command)
