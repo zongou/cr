@@ -107,7 +107,7 @@ impl App {
 
     fn find_doc(&self) -> Option<PathBuf> {
         let mut dir = env::current_dir().ok()?;
-        let candidates = ["taskfile.md", ".taskfile.md", "README.md"];
+        let candidates = ["taskfile.md", ".taskfile.md"];
         loop {
             for name in &candidates {
                 let p = dir.join(name);
