@@ -135,7 +135,6 @@ func findDoc() (string, bool) {
 	fileNameList := []string{
 		"taskfile.md",
 		".taskfile.md",
-		"README.md",
 	}
 
 	for {
