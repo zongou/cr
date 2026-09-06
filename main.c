@@ -290,7 +290,7 @@ void error(const char *format, ...) {
 }
 
 char *find_doc(char *program_basename) {
-    char        file_pattern[3][PATH_MAX];
+    char        file_pattern[2][PATH_MAX];
     char        current_dir[PATH_MAX];
     char        parent_dir[PATH_MAX];
     char        full_path[PATH_MAX];
@@ -298,7 +298,6 @@ char *find_doc(char *program_basename) {
 
     snprintf(file_pattern[0], sizeof(file_pattern[0]), "taskfile.md");
     snprintf(file_pattern[1], sizeof(file_pattern[1]), ".taskfile.md");
-    snprintf(file_pattern[2], sizeof(file_pattern[2]), "README.md");
 
     if (getcwd(current_dir, sizeof(current_dir)) == NULL) {
         return NULL;
