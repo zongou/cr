@@ -478,7 +478,7 @@ fn main() -> Result<()> {
                     print!("{}", cb.code);
                 }
             } else if cli.one {
-                app.print_one(std::slice::from_ref(found));
+                app.print_one(&found.children);
             } else if cli.tree {
                 app.print_tree(&mut [found.clone()]);
             } else {
