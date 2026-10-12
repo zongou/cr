@@ -83,7 +83,7 @@ zig run -target ${target} -lc main.c -- "$@"
 Build program
 
 ```sh
-cc -o cr main.c "$@"
+cc -o cr -g main.c "$@"
 ```
 
 ### Build:release
@@ -158,4 +158,10 @@ Some benchmarks
 
 ```sh
 hyperfine "${CR} env" "$@"
+```
+
+## valgrind
+
+```sh
+gcc -g -o ./cr main.c -lm && valgrind --leak-check=full --show-leak-kinds=all ./cr $@
 ```

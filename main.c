@@ -26,6 +26,7 @@ struct config {
 
     // Options
     char *file_path;
+    int   file_path_allocated;
     char *log_file;
 } config;
 
@@ -107,14 +108,17 @@ static void parse_custom_executors(void) {
             continue;
         }
 
+        char saved_sep = *separator;
         *separator  = '\0';
         char *key   = env_entry + 3;
         char *value = separator + 1;
         if (!*key || !*value) {
+            *separator = saved_sep;
             continue;
         }
 
         char *lang = strdup(key);
+        *separator = saved_sep;
         if (!lang) {
             continue;
         }
@@ -123,7 +127,8 @@ static void parse_custom_executors(void) {
 
         char *value_copy = strdup(value);
         if (!value_copy) {
-            return;
+            free(lang);
+            continue;
         }
 
         size_t arg_count = 0;
@@ -133,17 +138,24 @@ static void parse_custom_executors(void) {
 
         if (arg_count == 0) {
             free(value_copy);
-            return;
+            free(lang);
+            continue;
         }
 
         const char **args = calloc(arg_count, sizeof(char *));
         if (!args) {
             free(value_copy);
-            return;
+            free(lang);
+            continue;
         }
 
         free(value_copy);
         value_copy = strdup(value);
+        if (!value_copy) {
+            free(args);
+            free(lang);
+            continue;
+        }
         size_t idx = 0;
         for (char *token = strtok(value_copy, ","); token; token = strtok(NULL, ",")) {
             args[idx++] = strdup(token);
@@ -156,14 +168,15 @@ static void parse_custom_executors(void) {
                 free((char *)args[i]);
             }
             free(args);
-            return;
+            free(lang);
+            continue;
         }
 
         executor->lang              = strdup(lang);
         executor->prefix_args       = args;
         executor->prefix_args_count = arg_count;
 
-        CustomExecutor *new_custom_executor = malloc(sizeof(*env_entry));
+        CustomExecutor *new_custom_executor = malloc(sizeof(CustomExecutor));
         if (!new_custom_executor) {
             free((void *)executor->lang);
             for (size_t i = 0; i < idx; i++) {
@@ -172,7 +185,8 @@ static void parse_custom_executors(void) {
             free(args);
             free(executor);
             free(value_copy);
-            return;
+            free(lang);
+            continue;
         }
 
         new_custom_executor->executor = executor;
@@ -244,6 +258,27 @@ MD_NODE *new_md_node() {
     node->used   = 0;
 
     return node;
+}
+
+void free_code_blocks(CODE_BLOCK *block) {
+    while (block) {
+        CODE_BLOCK *next = block->next;
+        free(block->info);
+        free(block->lang);
+        free(block->code);
+        free(block);
+        block = next;
+    }
+}
+
+void free_md_node(MD_NODE *node) {
+    if (!node) return;
+    free_md_node(node->next);
+    free_md_node(node->child);
+    free(node->text);
+    free(node->description);
+    free_code_blocks(node->code_block);
+    free(node);
 }
 
 // Callback structure to store state
@@ -734,6 +769,9 @@ void node_to_tree_with_desc(MD_NODE *node, Tree *parent, int max_branch_width) {
             sprintf(branch_val, "%s %s %s", heading_text_lowered, seperators, current_node->description ? current_node->description : "");
             Tree *current_tree = add_node(parent, branch_val);
             node_to_tree_with_desc(current_node, current_tree, max_branch_width);
+            free(heading_text_lowered);
+            free(seperators);
+            free(branch_val);
         }
     }
 }
@@ -748,6 +786,8 @@ void print_node_tree_with_desc(MD_NODE *node) {
     node_to_tree_with_desc(node, docTree, max_branch_width);
     char *tree_str = print_tree(docTree);
     printf("%s", tree_str);
+    free(tree_str);
+    free_tree(docTree);
 }
 
 void print_one(MD_NODE *node) {
@@ -756,6 +796,7 @@ void print_one(MD_NODE *node) {
             char *heading_text_lowered = strdup(current_node->text);
             tolower_in_place(heading_text_lowered);
             printf("%s\n", heading_text_lowered);
+            free(heading_text_lowered);
         }
         print_one(current_node);
     }
@@ -845,10 +886,15 @@ int exec_node(MD_NODE *node, char **args, int num_args) {
                 // Child process
 
                 // Change directory
-                char *cmd_dir = dirname(config.file_path);
+                char *file_path_copy = strdup(config.file_path);
+                if (!file_path_copy) {
+                    _exit(1);
+                }
+                char *cmd_dir = dirname(file_path_copy);
                 if (chdir(cmd_dir) != 0) {
                     perror("chdir failed");
-                    return 1;
+                    free(file_path_copy);
+                    _exit(1);
                 }
 
                 // Calculate number of arguments needed
@@ -859,6 +905,7 @@ int exec_node(MD_NODE *node, char **args, int num_args) {
                 // Allocate argument array
                 char **exec_args = calloc(total_args + 1, sizeof(char *));
                 if (!exec_args) {
+                    free(file_path_copy);
                     _exit(1);
                 }
 
@@ -884,7 +931,12 @@ int exec_node(MD_NODE *node, char **args, int num_args) {
 
                 execvp(exec_args[0], exec_args);
                 perror("execvp failed");
-                free(cmd_dir);
+                for (size_t i = 0; i < executor->prefix_args_count; i++) {
+                    if (exec_args[i] != executor->prefix_args[i]) {
+                        free(exec_args[i]);
+                    }
+                }
+                free(file_path_copy);
                 free(exec_args);
                 _exit(1);
             } else {
@@ -917,6 +969,8 @@ void show_hint(MD_NODE *doc_node) {
         node_to_tree_with_desc(current, docTree, max_branch_width);
         char *tree_str = print_tree(docTree);
         printf("%s", tree_str);
+        free(tree_str);
+        free_tree(docTree);
     }
 }
 
@@ -1044,6 +1098,7 @@ int main(int argc, char **argv) {
     // Find and read markdown file
     if (!config.file_path) {
         config.file_path = find_doc(config.program);
+        config.file_path_allocated = 1;
         fflush(stdout);
     }
 
@@ -1067,6 +1122,8 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
+    int exit_code = EXIT_SUCCESS;
+    int done      = 0;
     if (argi < argc) {
         // First non-option argument is the node path, everything after that are
         // arguments to the code
@@ -1101,11 +1158,13 @@ int main(int argc, char **argv) {
             } else if (config.tree) {
                 print_node_tree_with_desc(foundNode);
             } else {
-                return exec_node(foundNode, cmd_args, num_args);
+                exit_code = exec_node(foundNode, cmd_args, num_args);
+                done      = 1;
             }
         } else {
             error("Cannot find node: %s\n", cmd);
-            return EXIT_FAILURE;
+            exit_code = EXIT_FAILURE;
+            done      = 1;
         }
     } else {
         log_printf("No command specified, printing hints.\n");
@@ -1118,5 +1177,9 @@ int main(int argc, char **argv) {
         }
     }
 
-    return EXIT_SUCCESS;
+    free_md_node(doc_node);
+    if (config.file_path_allocated) {
+        free(config.file_path);
+    }
+    return exit_code;
 }
